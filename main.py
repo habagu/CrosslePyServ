@@ -23,19 +23,25 @@ edges = cv2.Canny(blurred, 0, 50)
 #cv2.waitKey(0)
 #cv2.destroyAllWindows()
 
- # Copy edges to the images that will display the results in BGR
-cdst = cv2.cvtColor(edges, cv2.COLOR_GRAY2BGR)
-cdstP = np.copy(cdst)
+ret, thresh = cv2.threshold(img_gray,127,255,cv2.THRESH_BINARY_INV)
+thresh2 = cv2.bitwise_not(thresh)
 
+contours,hierarchy = cv2.findContours(blurred, cv2.RETR_EXTERNAL, 1)
 
-linesP = cv2.HoughLinesP(edges, 1, np.pi / 1800, 100, None, 1, 1)
+max_area = -1
 
-if linesP is not None:
-    for i in range(0, len(linesP)):
-        l = linesP[i][0]
-        cv2.line(cdstP, (l[0], l[1]), (l[2], l[3]), (0,0,255), 3, cv2.LINE_AA)
+# find contours with maximum area
+for cnt in contours:
+    approx = cv2.approxPolyDP(cnt, 0.001*cv2.arcLength(cnt,True), True)
+    if cv2.contourArea(cnt) > max_area:
+        max_area = cv2.contourArea(cnt)
+        max_cnt = cnt
+        max_approx = approx
 
-#cv2.imshow("Source", img)
-cv2.imshow("Detected Lines (in red) - Probabilistic Line Transform", cdstP)
+# cut the crossword region, and resize it to a standard size of 130x130
+x,y,w,h = cv2.boundingRect(max_cnt)
+cross_rect = thresh2[y:y+h, x:x+w]
+
+cv2.imshow("largest contour", cross_rect)
 
 cv2.waitKey()
