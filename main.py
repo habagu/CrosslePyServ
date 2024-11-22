@@ -8,10 +8,107 @@ import imutils
 from matplotlib import pyplot as plt
 import pytesseract
 
-path = "C:/Users/GNTJONAU/Documents/Berufsschule/24-25/LF12/crossle-python/CrosslePyServ/sample.jpg"
+path = "C:/Users/GNTJONAU/Documents/Berufsschule/24-25/LF12/crossle-python/CrosslePyServ/sample_points.jpg"
 
 img = cv2.imread(path)
 img_gray = cv2.imread(path,0)
+
+#correct image oreientation
+blurred = cv2.GaussianBlur(img, (5, 5), 0)
+hsv = cv2.cvtColor(blurred,cv2.COLOR_BGR2HSV)
+
+#range for red color
+lower_r = np.array([160,100,100])
+upper_r = np.array([179,255,255])
+mask = cv2.inRange(hsv,lower_r,upper_r)
+res = cv2.bitwise_and(img,img,mask=mask)
+_,thresh = cv2.threshold(res,125,255,cv2.THRESH_BINARY)
+
+# check which are the best canny threshold values for your image
+imgCanny = cv2.Canny(thresh, 180, 180)
+dilate = cv2.dilate(imgCanny, None, iterations = 1)
+# cv.imshow("dilate", dilate)
+# cv.waitKey()
+
+contours, hierarchy = cv2.findContours(dilate,cv2.RETR_TREE,cv2.CHAIN_APPROX_NONE)
+for cnt in contours:
+    epsilon = 0.1*cv2.arcLength(cnt,True)
+    approx = cv2.approxPolyDP(cnt,epsilon,True)
+    if len(approx) == 4:
+        cv2.drawContours(img,cnt,-1,(60,255,255),4)
+
+# loop over the contours add possible center points to point array
+pts = []
+for cnt in contours:
+    # compute the center of the contour
+    M = cv2.moments(cnt)
+    cX = int(M["m10"] / M["m00"])
+    cY = int(M["m01"] / M["m00"])
+    pts.append([cY, cX])
+
+
+
+def distance_top_left (p):
+    return math.sqrt((p[0] - 0)**2 + (p[1] - 0)**2)
+def distance_top_right (p): 
+    return math.sqrt((p[0] - 0)**2 + (p[1] - img.shape[1])**2)
+def distance_bottom_left (p): 
+    return math.sqrt((p[0] - img.shape[0])**2 + (p[1] - 0)**2)
+def distance_bottom_right (p): 
+    return math.sqrt((p[0] - img.shape[0])**2 + (p[1] - img.shape[1])**2)
+
+        
+
+
+p_top_left = min(pts, key = distance_top_left)
+p_top_right = min(pts, key = distance_top_right)
+p_bottom_left = min(pts, key = distance_bottom_left)
+p_bottom_right = min(pts, key = distance_bottom_right)
+
+# Draw points on the image
+color = (255, 0, 255)  # Purple color in BGR  # Red color in BGR
+radius = 10
+thickness = -1  # Solid circle
+
+cv2.circle(img, (p_top_left[1], p_top_left[0]), radius, color, thickness)
+cv2.circle(img, (p_top_right[1], p_top_right[0]), radius, color, thickness)
+cv2.circle(img, (p_bottom_left[1], p_bottom_left[0]), radius, color, thickness)
+cv2.circle(img, (p_bottom_right[1], p_bottom_right[0]), radius, color, thickness)
+
+# Display the image
+cv2.imshow("Image with Points", img)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+
+# calculating the distance between points ( Pythagorean theorem ) 
+
+height_1 = np.sqrt(((p_top_left[0] - p_top_right[0]) ** 2) + ((p_top_left[1] - p_top_right[1]) ** 2))
+height_2 = np.sqrt(((p_bottom_left[0] - p_bottom_right[0]) ** 2) + ((p_bottom_left[1] - p_bottom_right[1]) ** 2))
+
+width_1 = np.sqrt(((p_top_left[0] - p_bottom_left[0]) ** 2) + ((p_top_left[1] - p_bottom_left[1]) ** 2))
+width_2 = np.sqrt(((p_top_right[0] - p_bottom_right[0]) ** 2) + ((p_top_right[1] - p_bottom_right[1]) ** 2))
+
+max_height=max(int(height_1), int(height_2))
+max_width = max(int(width_1), int(width_2))
+
+# four input point 
+input_pts=np.float32([p_top_left,p_top_right,p_bottom_left,p_bottom_right])
+
+# output points for new transformed image
+output_pts = np.float32([[0, 0],
+                        [0, max_width],
+                        [max_height , 0],
+                        [max_height , max_width]])
+
+
+# Compute the perspective transform M
+M = cv2.getPerspectiveTransform(input_pts,output_pts)
+
+img_gray_oriented = cv2.warpPerspective(img_gray,M,(max_height, max_width),flags=cv2.INTER_LINEAR)
+
+cv2.imshow("img_gray_oriented", img_gray_oriented)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
 
 # Apply Gaussian blur to reduce noise and improve edge detection
 blurred = cv2.GaussianBlur(img_gray, (11, 11), 0)
