@@ -10,17 +10,19 @@ import pytesseract
 
 path = "C:/Users/GNTJONAU/Documents/Berufsschule/24-25/LF12/crossle-python/CrosslePyServ/sample_points.jpg"
 
-img = cv2.imread(path)
-img_gray = cv2.imread(path,0)
+img_src = cv2.imread(path)
+# Resize to a specific width and height
+new_width, new_height = 600, 900
+img = cv2.resize(img_src, (new_width, new_height), interpolation=cv2.INTER_LINEAR)
 
 #correct image oreientation
 blurred = cv2.GaussianBlur(img, (5, 5), 0)
 hsv = cv2.cvtColor(blurred,cv2.COLOR_BGR2HSV)
 
-#range for red color
-lower_r = np.array([160,100,100])
-upper_r = np.array([179,255,255])
-mask = cv2.inRange(hsv,lower_r,upper_r)
+# Define the HSV range for green
+lower_green = np.array([35, 100, 100])  # Lower bound of green
+upper_green = np.array([85, 255, 255])  # Upper bound of green
+mask = cv2.inRange(hsv,lower_green,upper_green)
 res = cv2.bitwise_and(img,img,mask=mask)
 _,thresh = cv2.threshold(res,125,255,cv2.THRESH_BINARY)
 
@@ -70,6 +72,8 @@ color = (255, 0, 255)  # Purple color in BGR  # Red color in BGR
 radius = 10
 thickness = -1  # Solid circle
 
+'''
+works fine until here
 cv2.circle(img, (p_top_left[1], p_top_left[0]), radius, color, thickness)
 cv2.circle(img, (p_top_right[1], p_top_right[0]), radius, color, thickness)
 cv2.circle(img, (p_bottom_left[1], p_bottom_left[0]), radius, color, thickness)
@@ -79,17 +83,19 @@ cv2.circle(img, (p_bottom_right[1], p_bottom_right[0]), radius, color, thickness
 cv2.imshow("Image with Points", img)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
+'''
 
 # calculating the distance between points ( Pythagorean theorem ) 
 
-height_1 = np.sqrt(((p_top_left[0] - p_top_right[0]) ** 2) + ((p_top_left[1] - p_top_right[1]) ** 2))
-height_2 = np.sqrt(((p_bottom_left[0] - p_bottom_right[0]) ** 2) + ((p_bottom_left[1] - p_bottom_right[1]) ** 2))
+height_1 = p_bottom_left[0] - p_top_left[0]
+height_2 =p_bottom_right[0] - p_top_right[0]
 
-width_1 = np.sqrt(((p_top_left[0] - p_bottom_left[0]) ** 2) + ((p_top_left[1] - p_bottom_left[1]) ** 2))
-width_2 = np.sqrt(((p_top_right[0] - p_bottom_right[0]) ** 2) + ((p_top_right[1] - p_bottom_right[1]) ** 2))
+width_1 = p_top_right[1] - p_top_left[1]
+width_2 = p_bottom_right[1]- p_bottom_left[1]
 
 max_height=max(int(height_1), int(height_2))
 max_width = max(int(width_1), int(width_2))
+
 
 # four input point 
 input_pts=np.float32([p_top_left,p_top_right,p_bottom_left,p_bottom_right])
@@ -102,16 +108,17 @@ output_pts = np.float32([[0, 0],
 
 
 # Compute the perspective transform M
-M = cv2.getPerspectiveTransform(input_pts,output_pts)
+h, status = cv2.findHomography(input_pts, output_pts)
+img_oriented = cv2.warpPerspective(img, h, (max_width,max_height))
 
-img_gray_oriented = cv2.warpPerspective(img_gray,M,(max_height, max_width),flags=cv2.INTER_LINEAR)
-
-cv2.imshow("img_gray_oriented", img_gray_oriented)
+cv2.imshow("img_oriented", img_oriented)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
 
+img_gray_oriented = cv2.cvtColor(img_oriented, cv2.COLOR_BGR2GRAY)
+
 # Apply Gaussian blur to reduce noise and improve edge detection
-blurred = cv2.GaussianBlur(img_gray, (11, 11), 0)
+blurred = cv2.GaussianBlur(img_gray_oriented, (11, 11), 0)
 
 # Apply edge detection (Canny) to find edges in the img
 edges = cv2.Canny(blurred, 0, 50)
@@ -120,7 +127,7 @@ edges = cv2.Canny(blurred, 0, 50)
 #cv2.waitKey(0)
 #cv2.destroyAllWindows()
 
-ret, thresh = cv2.threshold(img_gray,127,255,cv2.THRESH_BINARY_INV)
+ret, thresh = cv2.threshold(img_gray_oriented,127,255,cv2.THRESH_BINARY_INV)
 thresh2 = cv2.bitwise_not(thresh)
 
 contours,hierarchy = cv2.findContours(blurred, cv2.RETR_EXTERNAL, 1)
