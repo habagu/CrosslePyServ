@@ -72,20 +72,19 @@ color = (255, 0, 255)  # Purple color in BGR  # Red color in BGR
 radius = 10
 thickness = -1  # Solid circle
 
-'''
-works fine until here
+#works fine until here
 cv2.circle(img, (p_top_left[1], p_top_left[0]), radius, color, thickness)
 cv2.circle(img, (p_top_right[1], p_top_right[0]), radius, color, thickness)
 cv2.circle(img, (p_bottom_left[1], p_bottom_left[0]), radius, color, thickness)
 cv2.circle(img, (p_bottom_right[1], p_bottom_right[0]), radius, color, thickness)
-
+'''
 # Display the image
 cv2.imshow("Image with Points", img)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
 '''
 
-# calculating the distance between points ( Pythagorean theorem ) 
+# calculating the height/width
 
 height_1 = p_bottom_left[0] - p_top_left[0]
 height_2 =p_bottom_right[0] - p_top_right[0]
@@ -98,22 +97,20 @@ max_width = max(int(width_1), int(width_2))
 
 
 # four input point 
-input_pts=np.float32([p_top_left,p_top_right,p_bottom_left,p_bottom_right])
+input_pts = np.float32([p_top_left,p_bottom_left,p_bottom_right,p_top_right])
 
 # output points for new transformed image
-output_pts = np.float32([[0, 0],
-                        [0, max_width],
-                        [max_height , 0],
-                        [max_height , max_width]])
-
+output_pts = np.float32([[0,0], [max_height, 0], [max_height,max_width], [0,max_width]])
 
 # Compute the perspective transform M
-h, status = cv2.findHomography(input_pts, output_pts)
-img_oriented = cv2.warpPerspective(img, h, (max_width,max_height))
+M = cv2.getPerspectiveTransform(input_pts ,output_pts)
+img_oriented = cv2.warpPerspective(img,M,(max_width,max_height))
 
-cv2.imshow("img_oriented", img_oriented)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+
+
+plt.subplot(121),plt.imshow(img),plt.title('Input')
+plt.subplot(122),plt.imshow(img_oriented),plt.title('Output')
+plt.show()
 
 img_gray_oriented = cv2.cvtColor(img_oriented, cv2.COLOR_BGR2GRAY)
 
@@ -146,6 +143,6 @@ for cnt in contours:
 x,y,w,h = cv2.boundingRect(max_cnt)
 cross_rect = thresh2[y:y+h, x:x+w]
 
-cv2.imshow("largest contour", cross_rect)
+#cv2.imshow("largest contour", cross_rect)
 
-cv2.waitKey()
+#cv2.waitKey()
