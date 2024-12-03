@@ -84,6 +84,14 @@ cv2.waitKey(0)
 cv2.destroyAllWindows()
 '''
 
+'''
+production
+p_top_left = 
+p_top_right = 
+p_bottom_left = 
+p_bottom_right = 
+'''
+
 # calculating the height/width
 
 height_1 = p_bottom_left[0] - p_top_left[0]
@@ -95,54 +103,86 @@ width_2 = p_bottom_right[1]- p_bottom_left[1]
 max_height=max(int(height_1), int(height_2))
 max_width = max(int(width_1), int(width_2))
 
-
 # four input point 
-input_pts = np.float32([p_top_left,p_bottom_left,p_bottom_right,p_top_right])
+input_pts = np.float32([[p_top_left[1], p_top_left[0]],
+                        [p_top_right[1], p_top_right[0]],
+                        [p_bottom_left[1], p_bottom_left[0]],
+                        [p_bottom_right[1], p_bottom_right[0]]])
 
 # output points for new transformed image
-output_pts = np.float32([[0,0], [max_height, 0], [max_height,max_width], [0,max_width]])
+output_pts = np.float32([[0, 0],
+                         [max_width, 0],
+                         [0, max_height],
+                         [max_width, max_height]])
+
+img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
 # Compute the perspective transform M
-M = cv2.getPerspectiveTransform(input_pts ,output_pts)
-img_oriented = cv2.warpPerspective(img,M,(max_width,max_height))
+M = cv2.getPerspectiveTransform(input_pts, output_pts)
+
+# Apply the perspective transform to the image
+img_gray_oriented = cv2.warpPerspective(img_gray, M, (max_width, max_height))
 
 
-
+'''
 plt.subplot(121),plt.imshow(img),plt.title('Input')
-plt.subplot(122),plt.imshow(img_oriented),plt.title('Output')
+plt.subplot(122),plt.imshow(img_gray_oriented),plt.title('Output')
 plt.show()
+'''
 
-img_gray_oriented = cv2.cvtColor(img_oriented, cv2.COLOR_BGR2GRAY)
+
 
 # Apply Gaussian blur to reduce noise and improve edge detection
-blurred = cv2.GaussianBlur(img_gray_oriented, (11, 11), 0)
+blurred = cv2.GaussianBlur(img_gray_oriented, (3, 3), 0)
 
 # Apply edge detection (Canny) to find edges in the img
 edges = cv2.Canny(blurred, 0, 50)
 
-#cv2.imshow("Detected Edges", edges)
-#cv2.waitKey(0)
-#cv2.destroyAllWindows()
+'''
+cv2.imshow('edges', edges)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+'''
 
-ret, thresh = cv2.threshold(img_gray_oriented,127,255,cv2.THRESH_BINARY_INV)
-thresh2 = cv2.bitwise_not(thresh)
+# Anzahl der Zellen im Gitter
+num_cells_x = 13  # Anzahl der Spalten
+num_cells_y = 24  # Anzahl der Reihen
 
-contours,hierarchy = cv2.findContours(blurred, cv2.RETR_EXTERNAL, 1)
+# Zellengröße berechnen
+cell_width = max_width // num_cells_x
+cell_height = max_height // num_cells_y
 
-max_area = -1
+# Kopie des Bilds zum Zeichnen des Gitters
 
-# find contours with maximum area
-for cnt in contours:
-    approx = cv2.approxPolyDP(cnt, 0.001*cv2.arcLength(cnt,True), True)
-    if cv2.contourArea(cnt) > max_area:
-        max_area = cv2.contourArea(cnt)
-        max_cnt = cnt
-        max_approx = approx
+min_white_pixels = 1000000000
+# Gitterlinien zeichnen
+for zoom in range(1,50):
+    real_zoom = 1-(zoom * 0.001)
+    print("current zoom: ",real_zoom)
+    for wiggle_x in range(0,25):
+        for wiggle_y in range(0,25):
+            grid_image = edges.copy()
+            for i in range(1, num_cells_x):
+                x = int(i * cell_width * real_zoom) + wiggle_x
+                cv2.line(grid_image, (x, 0), (x, int(max_height * real_zoom)), (0, 0, 0), 3)  # Vertikale Linien
 
-# cut the crossword region, and resize it to a standard size of 130x130
-x,y,w,h = cv2.boundingRect(max_cnt)
-cross_rect = thresh2[y:y+h, x:x+w]
+            for j in range(1, num_cells_y):
+                y = int(j * cell_height * real_zoom) + wiggle_y
+                cv2.line(grid_image, (0, y), (int(max_width * real_zoom), y), (0, 0, 0), 3)  # Horizontale Linien
 
-#cv2.imshow("largest contour", cross_rect)
+             # Anzahl weißer Pixel zählen
+            white_pixels = np.sum(grid_image == 255)
 
-#cv2.waitKey()
+            # Überprüfen, ob dieses Bild weniger weiße Pixel hat
+            if white_pixels < min_white_pixels:
+                min_white_pixels = white_pixels
+                min_white_image = grid_image
+                cv2.imshow('Image with Grid', grid_image)
+                cv2.waitKey(0)
+
+#Bild anzeigen
+cv2.imshow('Image with Grid', min_white_image)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+
+
