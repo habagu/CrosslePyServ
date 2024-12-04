@@ -6,7 +6,7 @@ import cv2
 import numpy as np
 import imutils
 from matplotlib import pyplot as plt
-import pytesseract
+import pytesseract as tes
 
 path = "C:/Users/GNTJONAU/Documents/Berufsschule/24-25/LF12/crossle-python/CrosslePyServ/sample_points.jpg"
 
@@ -153,7 +153,8 @@ cell_width = max_width // num_cells_x
 cell_height = max_height // num_cells_y
 
 # Kopie des Bilds zum Zeichnen des Gitters
-
+vertical_lines = []
+horizontal_lines = []
 min_white_pixels = 1000000000
 # Gitterlinien zeichnen
 for zoom in range(1,50):
@@ -162,13 +163,20 @@ for zoom in range(1,50):
     for wiggle_x in range(0,25):
         for wiggle_y in range(0,25):
             grid_image = edges.copy()
+
+            # Listen zur Speicherung der Linienpositionen
+            vertical_lines = []
+            horizontal_lines = []
+
             for i in range(1, num_cells_x):
                 x = int(i * cell_width * real_zoom) + wiggle_x
                 cv2.line(grid_image, (x, 0), (x, int(max_height * real_zoom)), (0, 0, 0), 3)  # Vertikale Linien
+                vertical_lines.append(x)
 
             for j in range(1, num_cells_y):
                 y = int(j * cell_height * real_zoom) + wiggle_y
                 cv2.line(grid_image, (0, y), (int(max_width * real_zoom), y), (0, 0, 0), 3)  # Horizontale Linien
+                horizontal_lines.append(y)
 
              # Anzahl weißer Pixel zählen
             white_pixels = np.sum(grid_image == 255)
@@ -177,12 +185,47 @@ for zoom in range(1,50):
             if white_pixels < min_white_pixels:
                 min_white_pixels = white_pixels
                 min_white_image = grid_image
-                cv2.imshow('Image with Grid', grid_image)
-                cv2.waitKey(0)
 
 #Bild anzeigen
-cv2.imshow('Image with Grid', min_white_image)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+#cv2.imshow('Image with Grid', min_white_image)
+#cv2.waitKey(0)
+#cv2.destroyAllWindows()
+
+intersection_points = []
+# Finde Schnittpunkte
+for x in vertical_lines:
+    line_on_x = []
+    for y in horizontal_lines:
+        line_on_x.append((x, y))
+    intersection_points.append(line_on_x)
+
+def analyze_square(img):
+    # Optional: Schwellenwert, um Text klarer zu machen
+    _, thresh = cv2.threshold(img, 150, 255, cv2.THRESH_BINARY)
+
+    # OCR ausführen
+    custom_config = r'--oem 3 --psm 6'  # Tesseract-Konfiguration
+    text = tes.image_to_string(thresh, config=custom_config)
+
+    # Ergebnis analysieren
+    if text.strip():  # Prüfen, ob Text gefunden wurde
+        print("Text gefunden:")
+        print(text)
+    else:
+        print("Kein Text im Bild gefunden.")
+    return 0
+
+wiggle_x = int(img.shape[0]*0.01)
+wiggle_y = int(img.shape[1]*0.01)
+for x in range(0,num_cells_x-1):
+    for y in range (0,num_cells_y-1):
+        #get for reference points of square
+        top_left = intersection_points[x][y]
+        bottom_right = intersection_points[x + 1][y + 1]
+        cropped_image = edges[top_left[1]-wiggle_y:bottom_right[1]+wiggle_y, top_left[0]-wiggle_x:bottom_right[0]+wiggle_x]
+        analyze_square(cropped_image)
+
+
+
 
 
