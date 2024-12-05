@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 
 import math
+import random
 import sys
+import time
 import cv2
 import numpy as np
 import imutils
@@ -65,12 +67,6 @@ p_top_right = min(pts, key = distance_top_right)
 p_bottom_left = min(pts, key = distance_bottom_left)
 p_bottom_right = min(pts, key = distance_bottom_right)
 
-'''
-# Display the image
-cv2.imshow("Image with Points", img)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
-'''
 
 '''
 production
@@ -112,15 +108,6 @@ M = cv2.getPerspectiveTransform(input_pts, output_pts)
 img_gray_oriented = cv2.warpPerspective(img_gray, M, (max_width, max_height))
 img_src_oriented = cv2.warpPerspective(img_src, M, (max_width, max_height))
 
-
-'''
-plt.subplot(121),plt.imshow(img),plt.title('Input')
-plt.subplot(122),plt.imshow(img_gray_oriented),plt.title('Output')
-plt.show()
-'''
-
-
-
 # 2. (Optional) Kontrastanpassung mit CLAHE
 clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
 contrast_enhanced = clahe.apply(img_gray_oriented)
@@ -132,12 +119,6 @@ edges = cv2.Canny(contrast_enhanced, 30, 60, apertureSize=3, L2gradient=True)
 # 4. (Optional) Morphologische Nachbearbeitung (Dilation)
 kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
 dilated_edges = cv2.dilate(edges, kernel, iterations=1)
-
-'''
-cv2.imshow('edges', edges)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
-'''
 
 # Anzahl der Zellen im Gitter
 num_cells_x = 13  # Anzahl der Spalten
@@ -193,29 +174,210 @@ for x in vertical_lines_best:
         line_on_x.append((x, y))
     intersection_points.append(line_on_x)
 
-def analyze_square(img):
+def analyze_square(img,x,y):
 
-    # OCR ausführen
+    # Load the image in grayscale
+    img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+    # Calculate the mean pixel value
+    mean_pixel_value = np.mean(img_gray)
+
+    # Apply thresholding using the mean value
+    _, binary_img = cv2.threshold(img_gray, mean_pixel_value, 255, cv2.THRESH_BINARY)
+
+    # Create a copy of the image to modify
+    modified_image = binary_img.copy()
+
+    # Define the black pixel threshold (95%)
+    black_threshold_col = 0.90 * binary_img.shape[0]  # 95% of the rows
+    black_threshold_row = 0.90 * binary_img.shape[1]  # 95% of the columns
+
+    # Iterate through each column
+    for col in range(binary_img.shape[1]):  # image.shape[1] is the number of columns (width)
+        black_pixel_count = np.sum(binary_img[:, col] == 0)  # Count black pixels in the column
+        if black_pixel_count >= black_threshold_col:  # Check if >= 95% are black
+            modified_image[:, col] = 255  # Set the entire column to white
+
+    # Iterate through each row
+    for row in range(binary_img.shape[0]):  # image.shape[0] is the number of rows (height)
+        black_pixel_count = np.sum(binary_img[row, :] == 0)  # Count black pixels in the row
+        if black_pixel_count >= black_threshold_row:  # Check if >= 95% are black
+            modified_image[row, :] = 255  # Set the entire row to white
+
+    # Convert the binary image to RGB
+    modified_image = cv2.cvtColor(modified_image, cv2.COLOR_GRAY2RGB)
+    pathpre = "./"
+    pathpost = "/" + str(x) +"|" +str(y) + ".png"
+    if check_for_solution_field(modified_image):
+        path = pathpre + "sol" + pathpost
+        cv2.imwrite(path,modified_image)
+        return 0
+    elif check_for_arrow(modified_image):
+        path = pathpre + "arrow" + pathpost
+        cv2.imwrite(path,modified_image)
+        return 0
+    elif check_for_arrowhandle(modified_image):
+        path = pathpre + "arrowhandle" + pathpost
+        cv2.imwrite(path,modified_image)
+        return 0
+    elif check_for_center_white(modified_image):
+        path = pathpre + "white" + pathpost
+        cv2.imwrite(path,modified_image)
+        return 0
+    else:
+        text = check_for_text(modified_image)
+        print(x,y)
+        print(text)
+        path = pathpre + "text" + pathpost
+        cv2.imwrite(path,modified_image)
+        return 0
+
+def make_binary(img):
+    # Load the image in grayscale
+    img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+    # Calculate the mean pixel value
+    mean_pixel_value = np.mean(img_gray)
+
+    # Apply thresholding using the mean value
+    _, binary_img = cv2.threshold(img_gray, mean_pixel_value, 255, cv2.THRESH_BINARY)
+
+    # Create a copy of the image to modify
+    return binary_img
+
+def check_for_solution_field(img):
+    path = "./goalcontours/SolutionField.png"
+    arrow_src = cv2.imread(path)
+
+    # Ensure both images are the same size
+    arrow_src = cv2.resize(arrow_src, (img.shape[1], img.shape[0]))
+
+    # Convert black pixels in the black image to red
+    arrow_src[(arrow_src == 0).all(axis=-1)] = [0, 0, 255]
+    red_arrow = arrow_src  # Set black pixels to red
+
+    # Overlay the red image onto the base image
+    overlaid_image = cv2.addWeighted(red_arrow, 1,img, 1, 0)
+    
+    # Check for red pixels in the overlaid image
+    red_pixel_count_og = np.sum(np.all(red_arrow == [0, 0, 255], axis=-1))
+    red_pixel_count_overlaid = np.sum(np.all(overlaid_image == [0, 0, 255], axis=-1))
+    red_pixel_percentage = red_pixel_count_overlaid / red_pixel_count_og * 100
+    if red_pixel_percentage < 100:
+        path = "./debug/"+ str(red_pixel_percentage) + ".png"
+        cv2.imwrite(path,overlaid_image)
+        path = "./debug/"+ str(red_pixel_percentage) + "og.png"
+        cv2.imwrite(path,img)
+        return True
+    return False
+
+def check_for_arrowhandle(img):
+    path = "./goalcontours/ArrowHandle.png"
+    arrow_src = cv2.imread(path)
+
+    # Ensure both images are the same size
+    arrow_src = cv2.resize(arrow_src, (img.shape[1], img.shape[0]))
+
+    # Convert black pixels in the black image to red
+    arrow_src[(arrow_src == 0).all(axis=-1)] = [0, 0, 255]
+    red_arrow = arrow_src  # Set black pixels to red
+
+    for turn in range(0,4):
+        for mirror in range(0,2):
+            red_arrow = rotate_image_by_case(red_arrow,turn)
+            if mirror == 1:
+                red_arrow = mirror_image_horizontal(red_arrow)
+
+            # Ensure both images are the same size
+            red_arrow = cv2.resize(red_arrow, (img.shape[1], img.shape[0]))
+            # Overlay the red image onto the base image
+            overlaid_image = cv2.addWeighted(red_arrow, 1,img, 1, 0)
+
+            # Check for red pixels in the overlaid image
+            red_pixel_count_og = np.sum(np.all(red_arrow == [0, 0, 255], axis=-1))
+            red_pixel_count_overlaid = np.sum(np.all(overlaid_image == [0, 0, 255], axis=-1))
+            red_pixel_percentage = red_pixel_count_overlaid / red_pixel_count_og * 100
+            if red_pixel_percentage < 5:
+                return True
+    return False
+
+def mirror_image_horizontal(image):
+    # Get the image dimensions
+    return cv2.flip(image, 0)
+
+def check_for_arrow(img):
+    path = "./goalcontours/Arrow.png"
+    arrow_src = cv2.imread(path)
+
+    # Convert black pixels in the black image to red
+    arrow_src[(arrow_src == 0).all(axis=-1)] = [0, 0, 255]
+    red_arrow = arrow_src  # Set black pixels to red
+
+    for turn in range(0,4):
+        red_arrow = rotate_image_by_case(red_arrow,turn)
+
+        # Ensure both images are the same size
+        red_arrow = cv2.resize(red_arrow, (img.shape[1], img.shape[0]))
+
+        # Overlay the red image onto the base image
+        overlaid_image = cv2.addWeighted(red_arrow, 1,img, 1, 0)
+
+        # Check for red pixels in the overlaid image
+        red_pixel_count_og = np.sum(np.all(red_arrow == [0, 0, 255], axis=-1))
+        red_pixel_count_overlaid = np.sum(np.all(overlaid_image == [0, 0, 255], axis=-1))
+        red_pixel_percentage = red_pixel_count_overlaid / red_pixel_count_og * 100
+        if red_pixel_percentage < 5:
+            return True
+    return False
+
+def rotate_image_by_case(image, case):
+    # Define the rotation cases
+    if case == 0:
+        rotated_image = image  # 0° rotation (no change)
+    elif case == 1:
+        rotated_image = cv2.rotate(image, cv2.ROTATE_90_CLOCKWISE)  # 90° clockwise
+    elif case == 2:
+        rotated_image = cv2.rotate(image, cv2.ROTATE_180)  # 180°
+    elif case == 3:
+        rotated_image = cv2.rotate(image, cv2.ROTATE_90_COUNTERCLOCKWISE)  # 270° (90° counterclockwise)
+    else:
+        raise ValueError("Invalid case. Case must be 0, 1, 2, or 3.")
+    
+    return rotated_image
+
+def check_for_center_white(img):
+    height_range=(0.4, 0.6)
+    width_range=(0.2, 0.8)
+    # Get image dimensions
+    height, width = img.shape[:2]
+
+    # Calculate pixel ranges for cropping
+    y1 = int(height * height_range[0])
+    y2 = int(height * height_range[1])
+    x1 = int(width * width_range[0])
+    x2 = int(width * width_range[1])
+
+    # Crop the image
+    cropped_image = img[y1:y2, x1:x2]    
+
+    # Total number of pixels
+    total_pixels = cropped_image.size
+
+    # Count the number of black pixels (value 0)
+    black_pixels = np.sum(cropped_image == 0)
+
+    # Calculate the percentage of black pixels
+    black_pixel_percentage = (black_pixels / total_pixels) * 100
+
+    if black_pixel_percentage < 20:
+        return True
+    else:
+        return False
+
+def check_for_text(img): # OCR ausführen
     custom_config = r'--oem 3 --psm 6'  # Tesseract-Konfiguration
-    text = tes.image_to_string(img, config=custom_config)
-    if len(text)>0:  # Prüfen, ob Text gefunden wurde
-        lang = ''
-        try:
-            langs = detect_langs(text)
-            print(langs)
-            if "de" in langs:
-                print("Text gefunden:")
-                print(text)
-                return 1
-            else:
-                no_text(img)
-        except:
-            no_text(img)
-        
-    return 0
+    return tes.image_to_string(img, config=custom_config)
 
-def no_text(img):
-    print("Kein Text")
 
 zoom_x = int(img_src.shape[0]*0.002)
 zoom_y = int(img_src.shape[1]*0.002)
@@ -245,13 +407,8 @@ for x in range(0,len(intersection_points)-1):
             y2 = img_for_cropping.shape[0]
 
         cropped_image = img_for_cropping[y1:y2, x1:x2]
-        print(x,y)
-        n = n + analyze_square(cropped_image)
-
         percentage_to_finish = percentage_to_finish + 50/((len(intersection_points)-1)*(len(intersection_points[x])-1))
         print(percentage_to_finish,"%")
-
-print(n, "should be 78")
             
 
 
