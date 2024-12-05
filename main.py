@@ -7,6 +7,7 @@ import numpy as np
 import imutils
 from matplotlib import pyplot as plt
 import pytesseract as tes
+from langdetect import detect, detect_langs
 
 path = "/home/gntjonau/crossle/CrosslePyServ/sample_points.jpg"
 
@@ -109,6 +110,7 @@ M = cv2.getPerspectiveTransform(input_pts, output_pts)
 
 # Apply the perspective transform to the image
 img_gray_oriented = cv2.warpPerspective(img_gray, M, (max_width, max_height))
+img_src_oriented = cv2.warpPerspective(img_src, M, (max_width, max_height))
 
 
 '''
@@ -122,19 +124,14 @@ plt.show()
 # 2. (Optional) Kontrastanpassung mit CLAHE
 clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
 contrast_enhanced = clahe.apply(img_gray_oriented)
-output_path = "/home/gntjonau/crossle/CrosslePyServ/debugimgs/contrast.png"
-cv2.imwrite(output_path,contrast_enhanced)
 
 # 3. Optimierte Schwellenwerte und L2-Norm in Canny anwenden
 edges = cv2.Canny(contrast_enhanced, 30, 60, apertureSize=3, L2gradient=True)
-output_path = "/home/gntjonau/crossle/CrosslePyServ/debugimgs/edges.png"
-cv2.imwrite(output_path,edges)
+
 
 # 4. (Optional) Morphologische Nachbearbeitung (Dilation)
 kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
 dilated_edges = cv2.dilate(edges, kernel, iterations=1)
-output_path = "/home/gntjonau/crossle/CrosslePyServ/debugimgs/dilledges.png"
-cv2.imwrite(output_path,dilated_edges)
 
 '''
 cv2.imshow('edges', edges)
@@ -154,10 +151,12 @@ cell_height = max_height // num_cells_y
 vertical_lines_best = []
 horizontal_lines_best = []
 min_white_pixels = 1000000000
+percentage_to_finish = 0
 # Gitterlinien zeichnen
-for zoom in range(1,50):
+for zoom in range(0,50):
     real_zoom = 1-(zoom * 0.001)
-    print("current zoom: ",real_zoom)
+    percentage_to_finish = percentage_to_finish + 1
+    print(percentage_to_finish,"%")
     for wiggle_x in range(0,13):
         for wiggle_y in range(0,13):
             grid_image = edges.copy()
@@ -199,23 +198,33 @@ def analyze_square(img):
     # OCR ausführen
     custom_config = r'--oem 3 --psm 6'  # Tesseract-Konfiguration
     text = tes.image_to_string(img, config=custom_config)
-    output_path = "/home/gntjonau/crossle/CrosslePyServ/debugimgs/cropped.png"
-    cv2.imwrite(output_path,img)
-
-    # Ergebnis analysieren
-    if text.strip():  # Prüfen, ob Text gefunden wurde
-        print("Text gefunden:")
-        print(text)
-    else:
-        print("Kein Text im Bild gefunden.")
+    if len(text)>0:  # Prüfen, ob Text gefunden wurde
+        lang = ''
+        try:
+            langs = detect_langs(text)
+            print(langs)
+            if "de" in langs:
+                print("Text gefunden:")
+                print(text)
+                return 1
+            else:
+                no_text(img)
+        except:
+            no_text(img)
+        
     return 0
+
+def no_text(img):
+    print("Kein Text")
 
 zoom_x = int(img_src.shape[0]*0.002)
 zoom_y = int(img_src.shape[1]*0.002)
-img_for_cropping = img_gray_oriented.copy()
+img_for_cropping = img_src_oriented.copy()
 
+n=0
 for x in range(0,len(intersection_points)-1):
     for y in range (0,len(intersection_points[x])-1):
+
 
         #get for reference points of square
         top_left = intersection_points[x][y]
@@ -236,9 +245,13 @@ for x in range(0,len(intersection_points)-1):
             y2 = img_for_cropping.shape[0]
 
         cropped_image = img_for_cropping[y1:y2, x1:x2]
-        if (x == 0 and y == 0):
-            print(x,y)
-            analyze_square(cropped_image)
+        print(x,y)
+        n = n + analyze_square(cropped_image)
+
+        percentage_to_finish = percentage_to_finish + 50/((len(intersection_points)-1)*(len(intersection_points[x])-1))
+        print(percentage_to_finish,"%")
+
+print(n, "should be 78")
             
 
 
