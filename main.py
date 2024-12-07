@@ -212,12 +212,12 @@ def analyze_square(img,x,y):
         path = pathpre + "sol" + pathpost
         cv2.imwrite(path,modified_image)
         return 0
-    elif check_for_arrow(modified_image):
-        path = pathpre + "arrow" + pathpost
-        cv2.imwrite(path,modified_image)
-        return 0
     elif check_for_arrowhandle(modified_image):
         path = pathpre + "arrowhandle" + pathpost
+        cv2.imwrite(path,modified_image)
+        return 0
+    elif check_for_arrow(modified_image):
+        path = pathpre + "arrow" + pathpost
         cv2.imwrite(path,modified_image)
         return 0
     elif check_for_center_white(modified_image):
@@ -263,13 +263,14 @@ def check_for_solution_field(img):
     red_pixel_count_og = np.sum(np.all(red_arrow == [0, 0, 255], axis=-1))
     red_pixel_count_overlaid = np.sum(np.all(overlaid_image == [0, 0, 255], axis=-1))
     red_pixel_percentage = red_pixel_count_overlaid / red_pixel_count_og * 100
-    if red_pixel_percentage < 100:
-        path = "./debug/"+ str(red_pixel_percentage) + ".png"
-        cv2.imwrite(path,overlaid_image)
-        path = "./debug/"+ str(red_pixel_percentage) + "og.png"
-        cv2.imwrite(path,img)
+
+    # Count the number of black pixels (value 0)
+    black_pixels = np.sum(img == 0)
+    black_pixels_percentage = black_pixels/(img.shape[0]*img.shape[1]) * 100
+    if red_pixel_percentage > 13.8 and black_pixels_percentage < 50 and black_pixels_percentage > 28:
         return True
-    return False
+    else:
+        return False
 
 def check_for_arrowhandle(img):
     path = "./goalcontours/ArrowHandle.png"
@@ -282,11 +283,11 @@ def check_for_arrowhandle(img):
     arrow_src[(arrow_src == 0).all(axis=-1)] = [0, 0, 255]
     red_arrow = arrow_src  # Set black pixels to red
 
-    for turn in range(0,4):
-        for mirror in range(0,2):
-            red_arrow = rotate_image_by_case(red_arrow,turn)
+    for mirror in range(0,2):
+        for turn in range(0,4):
             if mirror == 1:
                 red_arrow = mirror_image_horizontal(red_arrow)
+            red_arrow = rotate_image_by_case(red_arrow,turn)            
 
             # Ensure both images are the same size
             red_arrow = cv2.resize(red_arrow, (img.shape[1], img.shape[0]))
@@ -297,7 +298,16 @@ def check_for_arrowhandle(img):
             red_pixel_count_og = np.sum(np.all(red_arrow == [0, 0, 255], axis=-1))
             red_pixel_count_overlaid = np.sum(np.all(overlaid_image == [0, 0, 255], axis=-1))
             red_pixel_percentage = red_pixel_count_overlaid / red_pixel_count_og * 100
-            if red_pixel_percentage < 5:
+
+            # Count the number of black pixels (value 0)
+            black_pixels = np.sum(img == 0)
+            black_pixels_percentage = black_pixels/(img.shape[0]*img.shape[1]) * 100
+
+            
+            
+            if black_pixels_percentage < 25:
+                
+                
                 return True
     return False
 
@@ -305,7 +315,7 @@ def mirror_image_horizontal(image):
     # Get the image dimensions
     return cv2.flip(image, 0)
 
-def check_for_arrow(img):
+def check_for_arrow_propability(img):
     path = "./goalcontours/Arrow.png"
     arrow_src = cv2.imread(path)
 
@@ -326,9 +336,9 @@ def check_for_arrow(img):
         red_pixel_count_og = np.sum(np.all(red_arrow == [0, 0, 255], axis=-1))
         red_pixel_count_overlaid = np.sum(np.all(overlaid_image == [0, 0, 255], axis=-1))
         red_pixel_percentage = red_pixel_count_overlaid / red_pixel_count_og * 100
-        if red_pixel_percentage < 5:
-            return True
-    return False
+        if red_pixel_percentage > 13.8:
+            return red_pixel_percentage
+    return 0
 
 def rotate_image_by_case(image, case):
     # Define the rotation cases
@@ -408,6 +418,7 @@ for x in range(0,len(intersection_points)-1):
 
         cropped_image = img_for_cropping[y1:y2, x1:x2]
         percentage_to_finish = percentage_to_finish + 50/((len(intersection_points)-1)*(len(intersection_points[x])-1))
+        analyze_square(cropped_image,x,y)
         print(percentage_to_finish,"%")
             
 
