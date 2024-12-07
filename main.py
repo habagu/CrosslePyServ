@@ -9,9 +9,10 @@ import numpy as np
 import imutils
 from matplotlib import pyplot as plt
 import pytesseract as tes
-from langdetect import detect, detect_langs
+import requests
+import base64
 
-path = "/home/gntjonau/crossle/CrosslePyServ/sample_points.jpg"
+path = "./sample_points.jpg"
 
 img_src = cv2.imread(path)
 
@@ -212,10 +213,6 @@ def analyze_square(img,x,y):
         path = pathpre + "sol" + pathpost
         cv2.imwrite(path,modified_image)
         return 0
-    elif check_for_arrowhandle(modified_image):
-        path = pathpre + "arrowhandle" + pathpost
-        cv2.imwrite(path,modified_image)
-        return 0
     elif check_for_arrow(modified_image):
         path = pathpre + "arrow" + pathpost
         cv2.imwrite(path,modified_image)
@@ -272,73 +269,64 @@ def check_for_solution_field(img):
     else:
         return False
 
-def check_for_arrowhandle(img):
-    path = "./goalcontours/ArrowHandle.png"
-    arrow_src = cv2.imread(path)
+def check_for_arrow(img):
 
-    # Ensure both images are the same size
-    arrow_src = cv2.resize(arrow_src, (img.shape[1], img.shape[0]))
+    # Encode the image as a JPEG or PNG
+    _, buffer = cv2.imencode('.jpg', img)
 
-    # Convert black pixels in the black image to red
-    arrow_src[(arrow_src == 0).all(axis=-1)] = [0, 0, 255]
-    red_arrow = arrow_src  # Set black pixels to red
+    # Convert the buffer to a Base64 string
+    base64_image = base64.b64encode(buffer).decode('utf-8')
 
-    for mirror in range(0,2):
-        for turn in range(0,4):
-            if mirror == 1:
-                red_arrow = mirror_image_horizontal(red_arrow)
-            red_arrow = rotate_image_by_case(red_arrow,turn)            
+    #API URL
+    url = "https://neat-tick-39.rshare.io/api/generate"
 
-            # Ensure both images are the same size
-            red_arrow = cv2.resize(red_arrow, (img.shape[1], img.shape[0]))
-            # Overlay the red image onto the base image
-            overlaid_image = cv2.addWeighted(red_arrow, 1,img, 1, 0)
+    # Data to send in the POST request
+    payload = {
+        "model":"llava:7b",
+        "prompt": "check for arrows in the image arrow = TRUE/FALSE && check if arrow has a handle arrow_with_handle = TRUE/FALSE && direction_from = from where the handle or the arrow comes = top=0/right=1/bottom=2/left=3 && direction_to = where the arrow points to = top=0/right=1/bottom=2/left=3 && respond using json",
 
-            # Check for red pixels in the overlaid image
-            red_pixel_count_og = np.sum(np.all(red_arrow == [0, 0, 255], axis=-1))
-            red_pixel_count_overlaid = np.sum(np.all(overlaid_image == [0, 0, 255], axis=-1))
-            red_pixel_percentage = red_pixel_count_overlaid / red_pixel_count_og * 100
+        "response_format": {
+            "type": "object",
+            "properties": {
+            "arrow": {
+                "type": "boolean"
+            },
+            "arrow_with_handle": {
+                "type": "boolean"
+            },
+            "direction_from":{
+                "type": "integer"
+            },
+            "direction_to":{
+                "type": "integer"
+            }
+            },
+            "required": [
+            "arrow",
+            "direction_from",
+            "direction_to"
+            ]
+        },
+        "images": [base64_image],  # Pass the Base64-encoded image in an array    
+        "stream": False    
+    }
 
-            # Count the number of black pixels (value 0)
-            black_pixels = np.sum(img == 0)
-            black_pixels_percentage = black_pixels/(img.shape[0]*img.shape[1]) * 100
+    # Sending the POST request
+    response = requests.post(url, json=str(payload))
 
-            
-            
-            if black_pixels_percentage < 25:
-                
-                
-                return True
+    # Output the response
+    print(x,y)
+    print(response.status_code)
+    print(response.json)
+    pathpre = "./debug/x#y"
+    pathpost = response.json
+    path = pathpre + "#" + str(pathpost) + ".png"
+    cv2.imwrite(path,img)
     return False
 
 def mirror_image_horizontal(image):
     # Get the image dimensions
     return cv2.flip(image, 0)
-
-def check_for_arrow_propability(img):
-    path = "./goalcontours/Arrow.png"
-    arrow_src = cv2.imread(path)
-
-    # Convert black pixels in the black image to red
-    arrow_src[(arrow_src == 0).all(axis=-1)] = [0, 0, 255]
-    red_arrow = arrow_src  # Set black pixels to red
-
-    for turn in range(0,4):
-        red_arrow = rotate_image_by_case(red_arrow,turn)
-
-        # Ensure both images are the same size
-        red_arrow = cv2.resize(red_arrow, (img.shape[1], img.shape[0]))
-
-        # Overlay the red image onto the base image
-        overlaid_image = cv2.addWeighted(red_arrow, 1,img, 1, 0)
-
-        # Check for red pixels in the overlaid image
-        red_pixel_count_og = np.sum(np.all(red_arrow == [0, 0, 255], axis=-1))
-        red_pixel_count_overlaid = np.sum(np.all(overlaid_image == [0, 0, 255], axis=-1))
-        red_pixel_percentage = red_pixel_count_overlaid / red_pixel_count_og * 100
-        if red_pixel_percentage > 13.8:
-            return red_pixel_percentage
-    return 0
 
 def rotate_image_by_case(image, case):
     # Define the rotation cases
