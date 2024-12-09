@@ -271,57 +271,6 @@ def check_for_solution_field(img):
 
 def check_for_arrow(img):
 
-    # Encode the image as a JPEG or PNG
-    _, buffer = cv2.imencode('.jpg', img)
-
-    # Convert the buffer to a Base64 string
-    base64_image = base64.b64encode(buffer).decode('utf-8')
-
-    #API URL
-    url = "https://neat-tick-39.rshare.io/api/generate"
-
-    # Data to send in the POST request
-    payload = {
-        "model":"llava:7b",
-        "prompt": "check for arrows in the image arrow = TRUE/FALSE && check if arrow has a handle arrow_with_handle = TRUE/FALSE && direction_from = from where the handle or the arrow comes = top=0/right=1/bottom=2/left=3 && direction_to = where the arrow points to = top=0/right=1/bottom=2/left=3 && respond using json",
-
-        "response_format": {
-            "type": "object",
-            "properties": {
-            "arrow": {
-                "type": "boolean"
-            },
-            "arrow_with_handle": {
-                "type": "boolean"
-            },
-            "direction_from":{
-                "type": "integer"
-            },
-            "direction_to":{
-                "type": "integer"
-            }
-            },
-            "required": [
-            "arrow",
-            "direction_from",
-            "direction_to"
-            ]
-        },
-        "images": [base64_image],  # Pass the Base64-encoded image in an array    
-        "stream": False    
-    }
-
-    # Sending the POST request
-    response = requests.post(url, json=str(payload))
-
-    # Output the response
-    print(x,y)
-    print(response.status_code)
-    print(response.json)
-    pathpre = "./debug/x#y"
-    pathpost = response.json
-    path = pathpre + "#" + str(pathpost) + ".png"
-    cv2.imwrite(path,img)
     return False
 
 def mirror_image_horizontal(image):
@@ -361,16 +310,22 @@ def check_for_center_white(img):
     # Total number of pixels
     total_pixels = cropped_image.size
 
-    # Count the number of black pixels (value 0)
-    black_pixels = np.sum(cropped_image == 0)
-
-    # Calculate the percentage of black pixels
-    black_pixel_percentage = (black_pixels / total_pixels) * 100
-
-    if black_pixel_percentage < 20:
+   
+    black_pixels = np.sum(img == 0)
+    black_pixels_percentage = black_pixels/(img.shape[0]*img.shape[1]) * 100
+    if black_pixels_percentage < 20:
         return True
     else:
-        return False
+        # Count the number of black pixels (value 0)
+        black_pixels = np.sum(cropped_image == 0)
+
+        # Calculate the percentage of black pixels
+        black_pixel_percentage = (black_pixels / total_pixels) * 100
+
+        if black_pixel_percentage < 10:
+            return True
+        else:
+            return False
 
 def check_for_text(img): # OCR ausführen
     custom_config = r'--oem 3 --psm 6'  # Tesseract-Konfiguration
