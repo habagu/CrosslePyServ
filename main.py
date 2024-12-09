@@ -208,7 +208,7 @@ def analyze_square(img,x,y):
     # Convert the binary image to RGB
     modified_image = cv2.cvtColor(modified_image, cv2.COLOR_GRAY2RGB)
     pathpre = "./"
-    pathpost = "/" + str(x) +"|" +str(y) + ".png"
+    pathpost = "/" + str(x) +"_" +str(y) + ".png"
     if check_for_solution_field(modified_image):
         path = pathpre + "sol" + pathpost
         cv2.imwrite(path,modified_image)
