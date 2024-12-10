@@ -50,6 +50,7 @@ def add_sol(image,sol_dir,whites_dir,target_dir):
 
 def generate_double_arrow_from_arrows(dir, whites_dir, sol_dir, target_dir):
     for filename in os.listdir(dir):
+        print("Quelle file: ",filename)
         file_path = os.path.join(dir, filename)
         
         # Ensure it's a file (not a directory)
@@ -71,6 +72,7 @@ def generate_double_arrow_from_arrows(dir, whites_dir, sol_dir, target_dir):
 
 def generate_double_arrow(dir, whites_dir, sol_dir, target_dir):
     for filename in os.listdir(dir):
+        print("Quelle file: ",filename)
         file_path = os.path.join(dir, filename)
         
         # Ensure it's a file (not a directory)
@@ -84,6 +86,7 @@ def generate_double_arrow(dir, whites_dir, sol_dir, target_dir):
 def generate_arrows(dir, whites_dir, sol_dir, target_dir):
     # Loop through all files in the directory
     for filename in os.listdir(dir):
+        print("Quelle file: ",filename)
         file_path = os.path.join(dir, filename)
         
         # Ensure it's a file (not a directory)
@@ -104,6 +107,7 @@ def generate_arrows(dir, whites_dir, sol_dir, target_dir):
 
 def generate_mirror_arrowhandles(dir, whites_dir, sol_dir, target_dir):
     for filename in os.listdir(dir):
+        print("Quelle file: ",filename)
         file_path = os.path.join(dir, filename)
         
         if os.path.isfile(file_path):
@@ -113,6 +117,7 @@ def generate_mirror_arrowhandles(dir, whites_dir, sol_dir, target_dir):
 
 def generate_arrowhandles(dir, whites_dir, sol_dir, target_dir):
     for filename in os.listdir(dir):
+        print("Quelle file: ",filename)
         file_path = os.path.join(dir, filename)
         
         if os.path.isfile(file_path):
@@ -185,6 +190,7 @@ def add_whites(image,whites_dir,target_dir):
 
 def generate_whites(dir, target_dir):
     for filename in os.listdir(dir):
+        print("Quelle file: ",filename)
         file_path = os.path.join(dir, filename)
         
         # Ensure it's a file (not a directory)
