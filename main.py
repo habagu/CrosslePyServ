@@ -11,6 +11,10 @@ from matplotlib import pyplot as plt
 import pytesseract as tes
 import requests
 import base64
+from neuro import make_training_data
+
+make_training_data()
+exit(0)
 
 path = "./sample_points.jpg"
 
