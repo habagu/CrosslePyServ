@@ -7,6 +7,8 @@ from PIL import Image
 import io
 import os
 
+from analyze import analyze_image
+
 received_images = []
 open_sockets = []
 
@@ -50,7 +52,7 @@ def start_server():
             json_data = json.loads(json_bytes.decode("utf-8"))
             print("JSON received:", json_data)
             
-            processed_data = process_data(image_name, json_data, client_socket)
+            processed_data = analyze_image(image_name, json_data, client_socket)
             
             send_response(client_socket, processed_data)
             

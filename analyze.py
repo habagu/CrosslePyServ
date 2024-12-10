@@ -4,6 +4,7 @@ import math
 import random
 import sys
 import time
+from crossle_server import send_status_updates
 import cv2
 import numpy as np
 import imutils
@@ -177,8 +178,19 @@ def distance_bottom_left (p):
 def distance_bottom_right (p): 
     return math.sqrt((p[0] - img_src.shape[0])**2 + (p[1] - img_src.shape[1])**2)
     
-def analyze_image(path: str = "./sample_points.jpg"):
+def analyze_image(path: str = "./sample_points.jpg", json_data: dict = None, client_socket = None):
     img_src = cv2.imread(path)
+
+    send_status_updates("Starting analyzing image...", 0, client_socket)
+    
+    # Anzahl der Zellen im Gitter
+    num_cells_x = 13  # Anzahl der Spalten
+    num_cells_y = 24  # Anzahl der Reihen
+
+    if json_data is not None:
+        # get rows and columns from json_data
+        num_cells_x = json_data["columns"]
+        num_cells_y = json_data["rows"]
 
     #correct image oreientation
     blurred = cv2.GaussianBlur(img_src, (3, 3), 0)
@@ -206,23 +218,20 @@ def analyze_image(path: str = "./sample_points.jpg"):
 
     # loop over the contours add possible center points to point array
     pts = []
-    for cnt in contours:
-        # compute the center of the contour
-        M = cv2.moments(cnt)
-        cX = int(M["m10"] / M["m00"])
-        cY = int(M["m01"] / M["m00"])
-        pts.append([cY, cX])
-
-
-
-            
-
+    if json_data is not None:
+        pts = json_data["points"]
+    else:
+        for cnt in contours:
+            # compute the center of the contour
+            M = cv2.moments(cnt)
+            cX = int(M["m10"] / M["m00"])
+            cY = int(M["m01"] / M["m00"])
+            pts.append([cY, cX])
 
     p_top_left = min(pts, key = distance_top_left)
     p_top_right = min(pts, key = distance_top_right)
     p_bottom_left = min(pts, key = distance_bottom_left)
     p_bottom_right = min(pts, key = distance_bottom_right)
-
 
     '''
     production
@@ -275,10 +284,6 @@ def analyze_image(path: str = "./sample_points.jpg"):
     # 4. (Optional) Morphologische Nachbearbeitung (Dilation)
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
     dilated_edges = cv2.dilate(edges, kernel, iterations=1)
-
-    # Anzahl der Zellen im Gitter
-    num_cells_x = 13  # Anzahl der Spalten
-    num_cells_y = 24  # Anzahl der Reihen
 
     # Zellengröße berechnen
     cell_width = max_width // num_cells_x
