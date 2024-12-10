@@ -8,19 +8,47 @@ def make_training_data():
     delete_png_files(traget_dirpre)
     post = "white/"
     whites_path = traget_dirpre + post
+    print("generate_whites")
     generate_whites(dirpre + post,traget_dirpre + post)
+    post = "sol/"
+    sol_path = traget_dirpre + post
     post = "arrow/"
-    generate_arrows(dirpre + post, whites_path, traget_dirpre + post)
+    print("generate_arrows")
+    generate_arrows(dirpre + post, whites_path, sol_path, traget_dirpre + post)
     post = "handle/"
-    generate_arrowhandles(dirpre + post, whites_path) #arrows top to right
+    print("generate_handles")
+    generate_arrowhandles(dirpre + post, whites_path, sol_path) #arrows top to right
     post = "handle/"
-    generate_mirror_arrowhandles(dirpre + post, whites_path) #arrows bottom to right
+    generate_mirror_arrowhandles(dirpre + post, whites_path, sol_path) #arrows bottom to right
     post = "double_arrow/"
-    generate_double_arrow(dirpre + post, whites_path, traget_dirpre + post)
-    generate_double_arrow_from_arrows(dirpre + "arrow", whites_path, traget_dirpre + post)
+    print("generate_double_arrows")
+    generate_double_arrow(dirpre + post, whites_path, sol_path, traget_dirpre + post)
+    generate_double_arrow_from_arrows(dirpre + "arrow", whites_path, sol_path, traget_dirpre + post)
+
+def add_sol(image,sol_dir,whites_dir,target_dir):
+    for solname in os.listdir(sol_dir):
+        sol_path = os.path.join(sol_dir, solname)
+
+        if os.path.isfile(sol_path):
+            if len(image.shape) == 3:
+                image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+            sol = cv2.imread(sol_path)  
+            if len(sol.shape) == 3:
+                sol= cv2.cvtColor(sol, cv2.COLOR_BGR2GRAY)
+
+            # Ändere die Größe von white auf die Größe von image
+            image_height, image_width = image.shape[:2]
+            sol = cv2.resize(sol, (image_width, image_height), interpolation=cv2.INTER_AREA)
+
+            # Gewichte kombinieren
+            fused = cv2.addWeighted(sol, 0.5, image, 0.5, 0)
+
+            fused[fused <= 200] = 0
+            cv2.imwrite(name_in_target(target_dir), fused)
+            add_whites(fused,whites_dir,target_dir)
     return 0
 
-def generate_double_arrow_from_arrows(dir, whites_dir, target_dir):
+def generate_double_arrow_from_arrows(dir, whites_dir, sol_dir, target_dir):
     for filename in os.listdir(dir):
         file_path = os.path.join(dir, filename)
         
@@ -38,9 +66,10 @@ def generate_double_arrow_from_arrows(dir, whites_dir, target_dir):
                     image[image <= 200] = 0
                     cv2.imwrite(name_in_target(target_dir),image)
                     add_whites(image,whites_dir,target_dir)
+                    add_sol(image,sol_dir,whites_dir,target_dir)
     return 0
 
-def generate_double_arrow(dir, whites_dir, target_dir):
+def generate_double_arrow(dir, whites_dir, sol_dir, target_dir):
     for filename in os.listdir(dir):
         file_path = os.path.join(dir, filename)
         
@@ -49,9 +78,10 @@ def generate_double_arrow(dir, whites_dir, target_dir):
             image = cv2.imread(file_path)
             cv2.imwrite(name_in_target(target_dir), image)
             add_whites(image,whites_dir,target_dir)
+            add_sol(image,sol_dir,whites_dir,target_dir)
     return 0
 
-def generate_arrows(dir, whites_dir, target_dir):
+def generate_arrows(dir, whites_dir, sol_dir, target_dir):
     # Loop through all files in the directory
     for filename in os.listdir(dir):
         file_path = os.path.join(dir, filename)
@@ -61,6 +91,7 @@ def generate_arrows(dir, whites_dir, target_dir):
             image = cv2.imread(file_path)
             cv2.imwrite(name_in_target(target_dir + "to_right/"), image)
             add_whites(image,whites_dir,target_dir + "to_right/")
+            add_sol(image,sol_dir,whites_dir,target_dir + "to_right/")
 
             # Bild um 90° nach rechts drehen
             rotated_image = cv2.rotate(image, cv2.ROTATE_90_CLOCKWISE)
@@ -68,18 +99,19 @@ def generate_arrows(dir, whites_dir, target_dir):
             # Gedrehtes Bild speichern
             cv2.imwrite(name_in_target(target_dir + "to_bottom/"), rotated_image)
             add_whites(rotated_image,whites_dir,target_dir + "to_bottom/")
+            add_sol(image,sol_dir,whites_dir,target_dir + "to_bottom/")
     return 0
 
-def generate_mirror_arrowhandles(dir, whites_dir,target_dir):
+def generate_mirror_arrowhandles(dir, whites_dir, sol_dir, target_dir):
     for filename in os.listdir(dir):
         file_path = os.path.join(dir, filename)
         
         if os.path.isfile(file_path):
             image = cv2.flip(cv2.imread(file_path),0)
-            generate_arrowhandles_core(image, whites_dir, target_dir)
+            generate_arrowhandles_core(image, whites_dir, sol_dir, target_dir)
     return 0
 
-def generate_arrowhandles(dir, whites_dir, target_dir):
+def generate_arrowhandles(dir, whites_dir, sol_dir, target_dir):
     for filename in os.listdir(dir):
         file_path = os.path.join(dir, filename)
         
@@ -88,21 +120,26 @@ def generate_arrowhandles(dir, whites_dir, target_dir):
             generate_arrowhandles_core(image, whites_dir, target_dir)
     return 0
 
-def generate_arrowhandles_core(image,whites_dir, target_dir):
+def generate_arrowhandles_core(image,whites_dir, sol_dir, target_dir):
     cv2.imwrite(name_in_target(target_dir + "top_to_right/"), image)
     add_whites(image,whites_dir,target_dir + "top_to_right/")
+    add_sol(image,sol_dir,whites_dir,target_dir + "top_to_right/")
 
     cv2.imwrite(name_in_target(target_dir + "bottom_to_right/"),cv2.flip(image, 0))
     add_whites(cv2.flip(image, 0),whites_dir,target_dir + "bottom_to_right/")
+    add_sol(cv2.flip(image, 0),sol_dir,whites_dir,target_dir + "bottom_to_right/")
     # Bild um 90° nach rechts drehen
     rotated_image = cv2.rotate(image, cv2.ROTATE_90_CLOCKWISE)
 
     # Gedrehtes Bild speichern
     cv2.imwrite(name_in_target(target_dir + "right_to_bottom/"), rotated_image)
     add_whites(rotated_image,whites_dir,target_dir + "right_to_bottom/")
+    add_sol(rotated_image,sol_dir,whites_dir,target_dir + "right_to_bottom/")
     
     cv2.imwrite(name_in_target(target_dir + "left_to_bottom/"),cv2.flip(rotated_image, 1))
     add_whites(cv2.flip(rotated_image, 0),whites_dir,target_dir + "left_to_bottom/")
+    add_sol(cv2.flip(rotated_image, 0),sol_dir,whites_dir,target_dir + "left_to_bottom/")
+
     return 0
 
 def add_whites(image,whites_dir,target_dir):
@@ -193,6 +230,5 @@ def delete_png_files(directory):
                 file_path = os.path.join(root, file)
                 try:
                     os.remove(file_path)  # Datei löschen
-                    print(f"Gelöscht: {file_path}")
                 except Exception as e:
                     print(f"Fehler beim Löschen von {file_path}: {e}")
