@@ -12,6 +12,7 @@ import tensorflow as tf
 import multiprocessing
 import sys
 import matplotlib.pyplot as plt
+from sklearn.utils.class_weight import compute_class_weight
 
 def progress_print(string):
     print(string)
@@ -50,11 +51,13 @@ def learn():
     k.backend.clear_session()
     # Load CSV data
     csv_file = output_csv # Replace with your file path
-    data = pd.read_csv(csv_file)
+    data = pd.read_csv(csv_file, sep=",", encoding="utf-8", engine="python")
+    print("dataset size pre shuffle: ",len(data))
 
     # Shuffle the data
     print("shuffeling")
     data = shuffle(data, random_state=42)[:(len(data) // 4) * 3]  # Randomize data order
+    print("dataset size: ",len(data))
     unique_labels = data["Label"].unique()
     print("All Labels",unique_labels)
     # Separate features (X) and labels (y)
@@ -77,9 +80,24 @@ def learn():
 
     num_classes = 8
     print("num_labels",num_classes)
-    from sklearn.utils.class_weight import compute_class_weight
-    class_weights = compute_class_weight('balanced', classes=np.unique(y_train), y=y_train)
+    print("Unique labels in y_train:", np.unique(y_train))
+    print("Unique labels in y_val:", np.unique(y_val))
+    print(0 in y_train)
+    print(1 in y_train)
+    print(2 in y_train)
+    print(3 in y_train)
+    print(4 in y_train)
+    print(5 in y_train)
+    print(6 in y_train)
+    print(7 in y_train)
+    # Get unique classes
+    classes = np.arange(num_classes)  # Ensures labels are 0 to 7
+    class_weights = compute_class_weight('balanced', classes=classes, y=y_train)
+
+    # Convert to dictionary
     class_weights_dict = dict(enumerate(class_weights))
+
+    print("Class Weights:", class_weights_dict)
 
     print("init model")
     # Define the CNN model
