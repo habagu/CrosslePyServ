@@ -14,6 +14,30 @@ import sys
 import matplotlib.pyplot as plt
 from sklearn.utils.class_weight import compute_class_weight
 
+def ensurefilepaths():
+    pre = "./"
+    os.makedirs(pre + "goalcontours", exist_ok=True)
+    os.makedirs(pre + "model", exist_ok=True)
+    os.makedirs(pre + "sol", exist_ok=True)
+    os.makedirs(pre + "trainingdata/base/arrow", exist_ok=True)
+    os.makedirs(pre + "trainingdata/base/double_arrow", exist_ok=True)
+    os.makedirs(pre + "trainingdata/base/handle/bottom_to_right", exist_ok=True)
+    os.makedirs(pre + "trainingdata/base/handle/top_to_right", exist_ok=True)
+    os.makedirs(pre + "trainingdata/base/sol", exist_ok=True)
+    os.makedirs(pre + "trainingdata/base/white", exist_ok=True)
+    os.makedirs(pre + "trainingdata/generated/arrow/to_bottom", exist_ok=True)
+    os.makedirs(pre + "trainingdata/generated/arrow/to_right", exist_ok=True)
+    os.makedirs(pre + "trainingdata/generated/handle/top_to_right", exist_ok=True)
+    os.makedirs(pre + "trainingdata/generated/handle/bottom_to_right", exist_ok=True)
+    os.makedirs(pre + "trainingdata/generated/handle/right_to_bottom", exist_ok=True)
+    os.makedirs(pre + "trainingdata/generated/handle/left_to_bottom", exist_ok=True)
+    os.makedirs(pre + "trainingdata/generated/sol", exist_ok=True)
+    os.makedirs(pre + "trainingdata/generated/white", exist_ok=True)
+    os.makedirs(pre + "trainingdata/trainingdata", exist_ok=True)
+    os.makedirs(pre + "", exist_ok=True)
+    os.makedirs(pre + "", exist_ok=True)
+    return 0
+
 def progress_print(string):
     print(string)
     sys.stdout.write("\033[F")  # Move cursor up one line

@@ -16,6 +16,7 @@ from neuro import *
 #make_training_data()
 #format_to_training_data_and_validat_data()
 learn()
+ensurefilepaths()
 
 path = "./sample_points.jpg"
 
