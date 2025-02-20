@@ -13,10 +13,10 @@ import requests
 import base64
 from neuro import *
 
-#make_training_data()
-#format_to_training_data_and_validat_data()
-learn()
 ensurefilepaths()
+make_training_data()
+format_to_training_data_and_validat_data()
+learn()
 
 path = "./sample_points.jpg"
 
