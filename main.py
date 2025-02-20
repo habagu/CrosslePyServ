@@ -15,14 +15,7 @@ from neuro import *
 
 #make_training_data()
 #format_to_training_data_and_validat_data()
-#learn()
-# Redirect STDERR to a file
-sys.stderr = open('./stderr_output.log', 'w')
-
-# Reset STDERR to its original state
-sys.stderr.close()
-sys.stderr = sys.__stderr__
-exit(0)
+learn()
 
 path = "./sample_points.jpg"
 
@@ -150,7 +143,7 @@ percentage_to_finish = 0
 for zoom in range(0,50):
     real_zoom = 1-(zoom * 0.001)
     percentage_to_finish = percentage_to_finish + 1
-    print(percentage_to_finish,"%")
+    progress_print(str(percentage_to_finish) + "%")
     for wiggle_x in range(0,13):
         for wiggle_y in range(0,13):
             grid_image = edges.copy()
@@ -219,26 +212,40 @@ def analyze_square(img,x,y):
 
     # Convert the binary image to RGB
     modified_image = cv2.cvtColor(modified_image, cv2.COLOR_GRAY2RGB)
-    pathpre = "./"
-    pathpost = "/" + str(x) +"_" +str(y) + ".png"
+    pathpre = "./sol/"
+    pathpost = str(x) +"_" +str(y) + ".png"
+    path = pathpre + pathpost
+    delete_png_files(pathpre)
     if check_for_solution_field(modified_image):
-        path = pathpre + "sol" + pathpost
-        cv2.imwrite(path,modified_image)
-        return 0
-    elif check_for_arrow(modified_image):
-        path = pathpre + "arrow" + pathpost
-        cv2.imwrite(path,modified_image)
-        return 0
-    elif check_for_center_white(modified_image):
-        path = pathpre + "white" + pathpost
-        cv2.imwrite(path,modified_image)
+        cv2.imwrite(path + "sol",modified_image)
         return 0
     else:
-        text = check_for_text(modified_image)
-        print(x,y)
-        print(text)
-        path = pathpre + "text" + pathpost
-        cv2.imwrite(path,modified_image)
+        white = 0
+        arrow_to_bottom = 1
+        arrow_to_right = 2
+        double_arrow = 3
+        handle_bottom_to_right = 4
+        handle_left_to_bottom = 5
+        handle_right_to_bottom = 6
+        handle_top_to_right = 7
+        prediction = predict(modified_image)
+        print(prediction)
+        if prediction == white:
+            cv2.imwrite(path + "white",modified_image)
+        elif prediction == arrow_to_bottom:
+            cv2.imwrite(path + "arrow_to_bottom",modified_image)
+        elif prediction == arrow_to_right:
+            cv2.imwrite(path + "arrow_to_right",modified_image)
+        elif prediction == double_arrow:
+            cv2.imwrite(path + "double_arrow",modified_image)
+        elif prediction == handle_bottom_to_right:
+            cv2.imwrite(path + "handle_bottom_to_right",modified_image)
+        elif prediction == handle_left_to_bottom:
+            cv2.imwrite(path + "handle_left_to_bottom",modified_image)
+        elif prediction == handle_right_to_bottom:
+            cv2.imwrite(path + "handle_right_to_bottom",modified_image)
+        elif prediction == handle_top_to_right:
+            cv2.imwrite(path + "handle_top_to_right",modified_image)
         return 0
 
 def make_binary(img):
@@ -374,7 +381,7 @@ for x in range(0,len(intersection_points)-1):
         cropped_image = img_for_cropping[y1:y2, x1:x2]
         percentage_to_finish = percentage_to_finish + 50/((len(intersection_points)-1)*(len(intersection_points[x])-1))
         analyze_square(cropped_image,x,y)
-        print(percentage_to_finish,"%")
+        progress_print(str(percentage_to_finish) + "%")
             
 
 

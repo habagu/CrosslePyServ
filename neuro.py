@@ -20,20 +20,24 @@ def progress_print(string):
     return 0
 
 
-def predict(image):
+def predict(modified_image):
 
-    if len(image.shape) == 3:
-            image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    image = cv2.resize(image,(100,100))
+    model = k.models.load_model("./model/cnn_model_arrow_white.keras")
+    if len(modified_image.shape) == 3:
+            modified_image = cv2.cvtColor(modified_image, cv2.COLOR_BGR2GRAY)
+    modified_image = cv2.resize(modified_image,(100,100))
+    # Flatten the image (convert 2D array to 1D)
+    flattened_image = modified_image.flatten()
+    image_size = 100
 
-    # Reshape to match the input shape expected by the model: (1, 100, 100, 1)
-    image_reshaped = image.reshape(1, 100, 100, 1)
-    
-    # Normalize the pixel values to range [0, 1]
-    image_normalized = image_reshaped / 255.0
-    model = k.load_model("./cnn_model_arrow_white.h5")
-    predictions = model.predict(image_normalized)
-    predicted_class = np.argmax(predictions, axis=1)
+    # Append the label to the flattened image data
+    row_with_label = list(flattened_image)  # Convert to list
+    # Make a prediction on one sample
+    sample = np.array(row_with_label).reshape(-1, image_size, image_size, 1) # Reshape if needed
+    predictions = model.predict(sample)
+
+    # Get the predicted class
+    predicted_class = np.argmax(predictions)  # Returns the class with highest probability
 
     return predicted_class
 
@@ -73,6 +77,10 @@ def learn():
 
     num_classes = 8
     print("num_labels",num_classes)
+    from sklearn.utils.class_weight import compute_class_weight
+    class_weights = compute_class_weight('balanced', classes=np.unique(y_train), y=y_train)
+    class_weights_dict = dict(enumerate(class_weights))
+
     print("init model")
     # Define the CNN model
     model = k.Sequential([
@@ -122,12 +130,7 @@ def learn():
     print(multiprocessing.cpu_count())
     print("Devices:", tf.config.list_physical_devices())
 
-    history = model.fit(
-        X_train, y_train,
-        epochs=epochs,
-        batch_size=batch_size,
-        validation_data=(X_val, y_val)
-    )
+    history = model.fit(X_train, y_train, epochs=10, batch_size=16, validation_data=(X_val, y_val), class_weight=class_weights_dict)
     print(history.history)
     print("save")
     filepath = "./model/cnn_model_arrow_white.keras"
