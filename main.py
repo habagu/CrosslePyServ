@@ -1,16 +1,10 @@
 #!/usr/bin/env python
 
 import math
-import random
-import sys
-import time
 import cv2
 import numpy as np
-import imutils
 from matplotlib import pyplot as plt
 import pytesseract as tes
-import requests
-import base64
 from neuro import *
 
 ensurefilepaths()
