@@ -279,7 +279,7 @@ def write_into_trainingdata(dir,label):
 def make_training_data():
     dirpre = "./trainingdata/base/"
     traget_dirpre = "./trainingdata/generated/"
-    delete_png_files(traget_dirpre)
+    #delete_png_files(traget_dirpre)
     post = "white/"
     whites_path = dirpre + post
     print("generate_whites")
