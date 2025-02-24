@@ -45,7 +45,6 @@ def progress_print(string):
     sys.stdout.write("\033[K")  # Clear the line
     return 0
 
-
 def predict(modified_image):
 
     model = k.models.load_model("./model/cnn_model_arrow_white.keras")
