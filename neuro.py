@@ -293,7 +293,7 @@ def make_training_data():
     print("generate_handles")
     #generate_arrowhandles(dirpre + post, whites_path, sol_path, traget_dirpre +"handle/") #arrows top to right
     post = "handle/bottom_to_right/"
-    generate_mirror_arrowhandles(dirpre + post, whites_path, sol_path, traget_dirpre+"handle/") #arrows bottom to right
+    #generate_mirror_arrowhandles(dirpre + post, whites_path, sol_path, traget_dirpre+"handle/") #arrows bottom to right
     post = "double_arrow/"
     print("generate_double_arrows")
     generate_double_arrow(dirpre + post, whites_path, sol_path, traget_dirpre + post)
@@ -302,7 +302,6 @@ def make_training_data():
 def add_sol(image,sol_dir,whites_dir,target_dir):
     for solname in os.listdir(sol_dir):
         sol_path = os.path.join(sol_dir, solname)
-        print("add sol: ", solname)
         if os.path.isfile(sol_path):
             if len(image.shape) == 3:
                 image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -334,7 +333,6 @@ def generate_double_arrow_from_arrows(dir, whites_dir, sol_dir, target_dir):
     num_arrows = count_files(dir)
     count = 0
     for filename in os.listdir(dir):
-        print("Quelle file: ",filename)
         file_path = os.path.join(dir, filename)
         
         # Ensure it's a file (not a directory)
@@ -360,7 +358,7 @@ def generate_double_arrow(dir, whites_dir, sol_dir, target_dir):
     num_arrows = count_files(dir)
     count = 0
     for filename in os.listdir(dir):
-        print("Quelle file: ",filename)
+        
         file_path = os.path.join(dir, filename)
         
         # Ensure it's a file (not a directory)
@@ -378,7 +376,7 @@ def generate_arrows(dir, whites_dir, sol_dir, target_dir):
     count = 0
     # Loop through all files in the directory
     for filename in os.listdir(dir):
-        print("Quelle file: ",filename)
+        
         file_path = os.path.join(dir, filename)
         
         # Ensure it's a file (not a directory)
@@ -403,7 +401,7 @@ def generate_mirror_arrowhandles(dir, whites_dir, sol_dir, target_dir):
     count = 0
     num_arrows = count_files(dir)
     for filename in os.listdir(dir):
-        print("Quelle file: ",filename)
+        
         file_path = os.path.join(dir, filename)
         progress_print(str(count) + "/" + str(num_arrows))
         count = count + 1
@@ -416,7 +414,7 @@ def generate_arrowhandles(dir, whites_dir, sol_dir, target_dir):
     count = 0
     num_arrows = count_files(dir)
     for filename in os.listdir(dir):
-        print("Quelle file: ",filename)
+        
         file_path = os.path.join(dir, filename)
         progress_print(str(count) + "/" + str(num_arrows))
         count = count + 1
@@ -490,7 +488,6 @@ def generate_whites(dir, target_dir):
     num_arrows = count_files(dir)
     count = 0
     for whitename in os.listdir(dir):
-        print("gen white: ",whitename)
         white_path = os.path.join(dir, whitename)
         progress_print(str(count) + "/" + str(num_arrows))
         count = count + 1
