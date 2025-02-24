@@ -33,6 +33,7 @@ def ensurefilepaths():
     os.makedirs(pre + "trainingdata/generated/handle/left_to_bottom", exist_ok=True)
     os.makedirs(pre + "trainingdata/generated/sol", exist_ok=True)
     os.makedirs(pre + "trainingdata/generated/white", exist_ok=True)
+    os.makedirs(pre + "trainingdata/generated/temp_whites", exist_ok=True)
     os.makedirs(pre + "trainingdata/trainingdata", exist_ok=True)
     os.makedirs(pre + "", exist_ok=True)
     os.makedirs(pre + "", exist_ok=True)
