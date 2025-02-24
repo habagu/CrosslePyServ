@@ -331,6 +331,8 @@ def add_sol(image,sol_dir,whites_dir,target_dir):
     return 0
 
 def generate_double_arrow_from_arrows(dir, whites_dir, sol_dir, target_dir):
+    num_arrows = count_files(dir)
+    count = 0
     for filename in os.listdir(dir):
         print("Quelle file: ",filename)
         file_path = os.path.join(dir, filename)
@@ -344,6 +346,8 @@ def generate_double_arrow_from_arrows(dir, whites_dir, sol_dir, target_dir):
                 
                 # Ensure it's a file (not a directory)
                 if os.path.isfile(file_path2):
+                    progress_print(str(count) + "/" + str(num_arrows*num_arrows))
+                    count = count + 1
                     to_bottom = cv2.imread(file_path)
                     image = cv2.addWeighted(to_bottom, 0.5,to_right, 0.5, 0)
                     image[image <= 200] = 0
@@ -353,12 +357,16 @@ def generate_double_arrow_from_arrows(dir, whites_dir, sol_dir, target_dir):
     return 0
 
 def generate_double_arrow(dir, whites_dir, sol_dir, target_dir):
+    num_arrows = count_files(dir)
+    count = 0
     for filename in os.listdir(dir):
         print("Quelle file: ",filename)
         file_path = os.path.join(dir, filename)
         
         # Ensure it's a file (not a directory)
         if os.path.isfile(file_path):
+            progress_print(str(count) + "/" + str(num_arrows))
+            count = count + 1
             image = cv2.imread(file_path)
             cv2.imwrite(name_in_target(target_dir), image)
             add_whites(image,whites_dir,target_dir)
@@ -366,6 +374,8 @@ def generate_double_arrow(dir, whites_dir, sol_dir, target_dir):
     return 0
 
 def generate_arrows(dir, whites_dir, sol_dir, target_dir):
+    num_arrows = count_files(dir)
+    count = 0
     # Loop through all files in the directory
     for filename in os.listdir(dir):
         print("Quelle file: ",filename)
@@ -373,6 +383,8 @@ def generate_arrows(dir, whites_dir, sol_dir, target_dir):
         
         # Ensure it's a file (not a directory)
         if os.path.isfile(file_path):
+            progress_print(str(count) + "/" + str(num_arrows))
+            count = count + 1
             image = cv2.imread(file_path)
             cv2.imwrite(name_in_target(target_dir + "to_right/"), image)
             add_whites(image,whites_dir,target_dir + "to_right/")
@@ -388,20 +400,26 @@ def generate_arrows(dir, whites_dir, sol_dir, target_dir):
     return 0
 
 def generate_mirror_arrowhandles(dir, whites_dir, sol_dir, target_dir):
+    count = 0
+    num_arrows = count_files(dir)
     for filename in os.listdir(dir):
         print("Quelle file: ",filename)
         file_path = os.path.join(dir, filename)
-        
+        progress_print(str(count) + "/" + str(num_arrows))
+        count = count + 1
         if os.path.isfile(file_path):
             image = cv2.flip(cv2.imread(file_path),0)
             generate_arrowhandles_core(image, whites_dir, sol_dir, target_dir)
     return 0
 
 def generate_arrowhandles(dir, whites_dir, sol_dir, target_dir):
+    count = 0
+    num_arrows = count_files(dir)
     for filename in os.listdir(dir):
         print("Quelle file: ",filename)
         file_path = os.path.join(dir, filename)
-        
+        progress_print(str(count) + "/" + str(num_arrows))
+        count = count + 1
         if os.path.isfile(file_path):
             image = cv2.imread(file_path)
             generate_arrowhandles_core(image, whites_dir, sol_dir, target_dir)
@@ -469,10 +487,13 @@ def add_whites(image,whites_dir,target_dir):
     return 0
 
 def generate_whites(dir, target_dir):
+    num_arrows = count_files(dir)
+    count = 0
     for whitename in os.listdir(dir):
         print("gen white: ",whitename)
         white_path = os.path.join(dir, whitename)
-
+        progress_print(str(count) + "/" + str(num_arrows))
+        count = count + 1
         if os.path.isfile(white_path):
             for i in range(0,4):
                 if i == 0 :
