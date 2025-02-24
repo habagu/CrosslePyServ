@@ -19,6 +19,15 @@ def ensurefilepaths():
     os.makedirs(pre + "goalcontours", exist_ok=True)
     os.makedirs(pre + "model", exist_ok=True)
     os.makedirs(pre + "sol", exist_ok=True)
+    os.makedirs(pre + "sol/" + "sol", exist_ok=True)
+    os.makedirs(pre + "sol/" + "white",exist_ok=True)
+    os.makedirs(pre + "sol/" + "arrow_to_bottom",exist_ok=True)
+    os.makedirs(pre + "sol/" + "arrow_to_right",exist_ok=True)
+    os.makedirs(pre + "sol/" + "double_arrow",exist_ok=True)
+    os.makedirs(pre + "sol/" + "handle_bottom_to_right",exist_ok=True)
+    os.makedirs(pre + "sol/" + "handle_left_to_bottom",exist_ok=True)
+    os.makedirs(pre + "sol/" + "handle_right_to_bottom",exist_ok=True)
+    os.makedirs(pre + "sol/" + "handle_top_to_right",exist_ok=True)
     os.makedirs(pre + "trainingdata/base/arrow", exist_ok=True)
     os.makedirs(pre + "trainingdata/base/double_arrow", exist_ok=True)
     os.makedirs(pre + "trainingdata/base/handle/bottom_to_right", exist_ok=True)
@@ -33,10 +42,9 @@ def ensurefilepaths():
     os.makedirs(pre + "trainingdata/generated/handle/left_to_bottom", exist_ok=True)
     os.makedirs(pre + "trainingdata/generated/sol", exist_ok=True)
     os.makedirs(pre + "trainingdata/generated/white", exist_ok=True)
+    os.makedirs(pre + "trainingdata/generated/double_arrow", exist_ok=True)
     os.makedirs(pre + "trainingdata/generated/temp_whites", exist_ok=True)
     os.makedirs(pre + "trainingdata/trainingdata", exist_ok=True)
-    os.makedirs(pre + "", exist_ok=True)
-    os.makedirs(pre + "", exist_ok=True)
     return 0
 
 def progress_print(string):
