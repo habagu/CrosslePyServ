@@ -8,7 +8,7 @@ import pytesseract as tes
 from neuro import *
 
 ensurefilepaths()
-make_training_data()
+#make_training_data()
 format_to_training_data_and_validat_data()
 learn()
 
