@@ -7,8 +7,6 @@ from PIL import Image
 import io
 import os
 
-from analyze import analyze_image
-
 received_images = []
 open_sockets = []
 
@@ -52,9 +50,9 @@ def start_server():
             json_data = json.loads(json_bytes.decode("utf-8"))
             print("JSON received:", json_data)
             
-            processed_data = analyze_image(image_name, json_data, client_socket)
-            
-            send_response(client_socket, processed_data)
+            from analyze import analyze_image
+
+            analyze_image(image_name, json_data, client_socket)
             
         except Exception as e:
             print("Error:", e)
@@ -64,6 +62,12 @@ def start_server():
             os.remove(image_name)
             received_images.remove(image_name)
             print(f"Deleted image file: {image_name}")
+
+def test_image():
+    
+    from analyze import analyze_image
+
+    analyze_image()
 
 def send_response(client_socket, response_dict):
     print("Sending JSON:", json.dumps(response_dict))
@@ -117,7 +121,7 @@ def handle_console_input():
                     print("Error closing socket:", e)
             os._exit(0)
 
-if __name__ == "__main__":
+def initialize_server():
     console_thread = threading.Thread(target=handle_console_input)
     console_thread.start()
     start_server()
