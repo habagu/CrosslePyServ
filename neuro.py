@@ -28,6 +28,7 @@ def ensurefilepaths():
     os.makedirs(pre + "sol/" + "handle_left_to_bottom",exist_ok=True)
     os.makedirs(pre + "sol/" + "handle_right_to_bottom",exist_ok=True)
     os.makedirs(pre + "sol/" + "handle_top_to_right",exist_ok=True)
+    os.makedirs(pre + "sol/" + "text",exist_ok=True)
     os.makedirs(pre + "trainingdata/base/arrow", exist_ok=True)
     os.makedirs(pre + "trainingdata/base/double_arrow", exist_ok=True)
     os.makedirs(pre + "trainingdata/base/handle/bottom_to_right", exist_ok=True)
@@ -279,21 +280,21 @@ def write_into_trainingdata(dir,label):
 def make_training_data():
     dirpre = "./trainingdata/base/"
     traget_dirpre = "./trainingdata/generated/"
-    #delete_png_files(traget_dirpre)
+    delete_png_files(traget_dirpre)
     post = "white/"
     whites_path = dirpre + post
     print("generate_whites")
-    #generate_whites(dirpre + post,traget_dirpre + post)
+    generate_whites(dirpre + post,traget_dirpre + post)
     post = "sol/"
     sol_path = dirpre + post
     post = "arrow/"
     print("generate_arrows")
-    #generate_arrows(dirpre + post, whites_path, sol_path, traget_dirpre + post)
+    generate_arrows(dirpre + post, whites_path, sol_path, traget_dirpre + post)
     post = "handle/top_to_right/"
     print("generate_handles")
-    #generate_arrowhandles(dirpre + post, whites_path, sol_path, traget_dirpre +"handle/") #arrows top to right
+    generate_arrowhandles(dirpre + post, whites_path, sol_path, traget_dirpre +"handle/") #arrows top to right
     post = "handle/bottom_to_right/"
-    #generate_mirror_arrowhandles(dirpre + post, whites_path, sol_path, traget_dirpre+"handle/") #arrows bottom to right
+    generate_mirror_arrowhandles(dirpre + post, whites_path, sol_path, traget_dirpre+"handle/") #arrows bottom to right
     post = "double_arrow/"
     print("generate_double_arrows")
     generate_double_arrow(dirpre + post, whites_path, sol_path, traget_dirpre + post)
