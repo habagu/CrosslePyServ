@@ -292,7 +292,7 @@ def write_into_trainingdata(dir,label):
         df = pd.DataFrame([row_with_label])  # Each row is one image with a label
         chunk.add(df)
 
-    df.to_csv(output_csv, mode='a', index=False, header=False)
+    chunk.to_csv(output_csv, mode='a', index=False, header=False)
     print("wrote lines: ", num_files)
     return 0
 
