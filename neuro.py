@@ -272,6 +272,7 @@ def write_into_trainingdata(dir,label):
     output_csv = "./trainingdata/trainingdata/trainingdata.csv"
     num_files = len(os.listdir(dir))
     num_files_counter = 0
+    chunk = pd.DataFrame()
     for file in os.listdir(dir):
         num_files_counter = num_files_counter + 1
         progress_print("write file: " + str(num_files_counter) + "/" + str(num_files))
@@ -289,9 +290,9 @@ def write_into_trainingdata(dir,label):
 
         # Convert to a DataFrame
         df = pd.DataFrame([row_with_label])  # Each row is one image with a label
+        chunk.add(df)
 
-
-        df.to_csv(output_csv, mode='a', index=False, header=False)
+    df.to_csv(output_csv, mode='a', index=False, header=False)
     print("wrote lines: ", num_files)
     return 0
 
