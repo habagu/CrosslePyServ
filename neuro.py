@@ -84,12 +84,27 @@ def learn():
     k.backend.clear_session()
     # Load CSV data
     csv_file = output_csv # Replace with your file path
-    data = pd.read_csv(csv_file, sep=",", encoding="utf-8", engine="python")
+    data = pd.DataFrame()  # Initialize empty DataFrame
+    chunksize = 10 ** 4  # Process 10,000 rows at a time
+    loading = 0  # Progress counter
+
+    # Read CSV in chunks
+    reader = pd.read_csv(output_csv, chunksize=chunksize)
+
+    chunks = []  # List to store chunks before merging
+
+    for chunk in reader:
+        loading += chunksize  # Track actual rows loaded
+        progress_print("Loaded Data: " + str(loading)) # Print progress
+        chunks.append(chunk)  # Store chunk
+
+    # Combine all chunks into a single DataFrame
+    data = pd.concat(chunks, ignore_index=True)
     print("dataset size pre shuffle: ",len(data))
 
     # Shuffle the data
     print("shuffeling")
-    data = shuffle(data, random_state=42)[:(len(data) // 4) * 3]  # Randomize data order
+    data = shuffle(data, random_state=42)  # Randomize data order
     print("dataset size: ",len(data))
     unique_labels = data["Label"].unique()
     print("All Labels",unique_labels)
@@ -200,6 +215,18 @@ def learn():
     return 0
 
 def format_to_training_data_and_validat_data():
+
+     # Define column names
+    pixel_columns = [f"pixel_{i}" for i in range(10000)]
+    columns = pixel_columns + ['Label']
+
+    # Create an empty DataFrame with column names
+    data = pd.DataFrame(columns=columns)
+
+    # Save to CSV
+    output_csv = "./trainingdata/trainingdata/trainingdata.csv"
+    data.to_csv(output_csv, index=False)
+
     #mapping
     white = 0
     arrow_to_bottom = 1
@@ -242,16 +269,7 @@ def format_to_training_data_and_validat_data():
 
 def write_into_trainingdata(dir,label):
 
-    # Define column names
-    pixel_columns = [f"pixel_{i}" for i in range(10000)]
-    columns = pixel_columns + ['Label']
-
-    # Create an empty DataFrame with column names
-    data = pd.DataFrame(columns=columns)
-
-    # Save to CSV
     output_csv = "./trainingdata/trainingdata/trainingdata.csv"
-    data.to_csv(output_csv, index=False)
     num_files = len(os.listdir(dir))
     num_files_counter = 0
     for file in os.listdir(dir):
