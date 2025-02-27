@@ -167,10 +167,6 @@ def learn():
         layers.Conv2D(32, (3, 3), activation='relu'),
         layers.MaxPooling2D((2, 2)),
 
-        # Third Convolutional Layer
-        layers.Conv2D(32, (3, 3), activation='relu'),
-        layers.MaxPooling2D((2, 2)),
-
         # Flatten the output
         layers.Flatten(),
 
