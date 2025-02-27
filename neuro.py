@@ -88,8 +88,13 @@ def learn():
     chunksize = 10 ** 3  # Process 10,000 rows at a time
     loading = 0  # Progress counter
 
+    # Read the first few rows to infer column names
+    df_sample = pd.read_csv(output_csv, nrows=5)
+    col_names = df_sample.columns.tolist()
+    # Define dtype mapping for all columns as uint8
+    dtype_map = {col: "uint8" for col in col_names}
     # Read CSV in chunks
-    reader = pd.read_csv(output_csv, chunksize=chunksize)
+    reader = pd.read_csv(output_csv, chunksize=chunksize, dtype=dtype_map)
 
     chunks = []  # List to store chunks before merging
 
