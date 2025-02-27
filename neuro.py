@@ -13,6 +13,7 @@ import multiprocessing
 import sys
 import matplotlib.pyplot as plt
 from sklearn.utils.class_weight import compute_class_weight
+import gc
 
 def ensurefilepaths():
     pre = "./"
@@ -106,17 +107,20 @@ def learn():
 
     # Combine all chunks into a single DataFrame
     data = pd.concat(chunks)
+    del chunks
+    gc.collect()
     print("finished loading data")
     # Shuffle the data
     print("shuffeling")
-    data = shuffle(data, random_state=42)  # Randomize data order
+    data = shuffle(data, random_state=42)[:int(len(data)*0.8)]  # Randomize data order
     print("dataset size: ",len(data))
     unique_labels = data["Label"].unique()
     print("All Labels",unique_labels)
     # Separate features (X) and labels (y)
     X = data.drop(columns=['Label'])  # All columns except 'label'
     y = data['Label']  # Target column
-
+    del data
+    gc.collect()
     print("splitting")
     # Split data into training and validation sets (80% train, 20% validation)
     X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2, random_state=42)
