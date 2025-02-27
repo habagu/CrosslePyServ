@@ -112,7 +112,7 @@ def learn():
     print("finished loading data")
     # Shuffle the data
     print("shuffeling")
-    data = shuffle(data, random_state=42)[:int(len(data)*0.8)]  # Randomize data order
+    data = shuffle(data, random_state=42)[:int(len(data)*0.5)]  # Randomize data order
     print("dataset size: ",len(data))
     unique_labels = data["Label"].unique()
     print("All Labels",unique_labels)
