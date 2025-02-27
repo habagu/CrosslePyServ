@@ -94,15 +94,14 @@ def learn():
     # Define dtype mapping for all columns as uint8
     dtype_map = {col: "uint8" for col in col_names}
     # Read CSV in chunks
-    data = pd.read_csv(output_csv, dtype=dtype_map, low_memory=False)
+    reader = pd.read_csv(output_csv, chunksize=chunksize,dtype=dtype_map, low_memory=False)
 
-    '''
     chunks = []  # List to store chunks before merging
 
     for chunk in reader:
-        loading += chunksize*0.5  # Track actual rows loaded
+        loading += chunksize  # Track actual rows loaded
         progress_print("Loaded Data: " + str(loading)) # Print progress
-        chunk = shuffle(chunk, random_state=42)[:int(len(chunk)*0.5)]
+        chunk = shuffle(chunk, random_state=42)#[:int(len(chunk)*0.5)]
         chunks.append(chunk)  # Store chunk
 
     # Combine all chunks into a single DataFrame
@@ -115,7 +114,6 @@ def learn():
         progress_print("processing chunk: " + str(count) + "/" + str(chunkcount))
         data.add(c)
         chunks.remove(c)
-    '''
     print("dataset size pre shuffle: ",len(data))
 
     # Shuffle the data
