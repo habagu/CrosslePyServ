@@ -106,14 +106,7 @@ def learn():
 
     # Combine all chunks into a single DataFrame
     print("finished loading data")
-    data = pd.DataFrame()
-    chunkcount = len(chunks)
-    count = 0
-    print("loading to dataframe")
-    for c in chunks:
-        progress_print("processing chunk: " + str(count) + "/" + str(chunkcount))
-        data.add(c)
-        chunks.remove(c)
+    data = pd.concat(chunks)
     print("dataset size pre shuffle: ",len(data))
 
     # Shuffle the data
