@@ -85,7 +85,7 @@ def learn():
     # Load CSV data
     csv_file = output_csv # Replace with your file path
     data = pd.DataFrame()  # Initialize empty DataFrame
-    chunksize = 10 ** 3  # Process 10,000 rows at a time
+    chunksize = 10 ** 4  # Process 10,000 rows at a time
     loading = 0  # Progress counter
 
     # Read the first few rows to infer column names
