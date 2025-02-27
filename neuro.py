@@ -85,7 +85,7 @@ def learn():
     # Load CSV data
     csv_file = output_csv # Replace with your file path
     data = pd.DataFrame()  # Initialize empty DataFrame
-    chunksize = 10 ** 4  # Process 10,000 rows at a time
+    chunksize = 10 ** 3  # Process 10,000 rows at a time
     loading = 0  # Progress counter
 
     # Read CSV in chunks
@@ -94,14 +94,21 @@ def learn():
     chunks = []  # List to store chunks before merging
 
     for chunk in reader:
-        loading += chunksize  # Track actual rows loaded
+        loading += chunksize*0.5  # Track actual rows loaded
         progress_print("Loaded Data: " + str(loading)) # Print progress
         chunk = shuffle(chunk, random_state=42)[:int(len(chunk)*0.5)]
         chunks.append(chunk)  # Store chunk
 
     # Combine all chunks into a single DataFrame
     print("finished loading data")
-    data = pd.concat(chunks, ignore_index=True)
+    data = pd.DataFrame()
+    chunkcount = len(chunks)
+    count = 0
+    print("loading to dataframe")
+    for c in chunks:
+        progress_print("processing chunk: " + str(count) + "/" + str(chunkcount))
+        data.add(c)
+        chunks.remove(c)
     print("dataset size pre shuffle: ",len(data))
 
     # Shuffle the data
