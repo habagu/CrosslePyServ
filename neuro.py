@@ -96,6 +96,7 @@ def learn():
     for chunk in reader:
         loading += chunksize  # Track actual rows loaded
         progress_print("Loaded Data: " + str(loading)) # Print progress
+        chunk = shuffle(chunk, random_state=42)[:int(len(chunk)*0.9)]
         chunks.append(chunk)  # Store chunk
 
     # Combine all chunks into a single DataFrame
