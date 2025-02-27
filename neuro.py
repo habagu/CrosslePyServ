@@ -106,7 +106,14 @@ def learn():
 
     # Combine all chunks into a single DataFrame
     print("finished loading data")
-    data = pd.concat(chunks)
+    data = pd.DataFrame()
+    chunkcount = len(chunks)
+    count = 0
+    print("loading to dataframe")
+    for c in chunks:
+        progress_print("processing chunk: " + str(count) + "/" + str(chunkcount))
+        data.add(c)
+        chunks.remove(c)
     print("dataset size pre shuffle: ",len(data))
 
     # Shuffle the data
@@ -162,11 +169,11 @@ def learn():
         layers.MaxPooling2D((2, 2)),
 
         # Second Convolutional Layer
-        layers.Conv2D(64, (3, 3), activation='relu'),
+        layers.Conv2D(32, (3, 3), activation='relu'),
         layers.MaxPooling2D((2, 2)),
 
         # Third Convolutional Layer
-        layers.Conv2D(128, (3, 3), activation='relu'),
+        layers.Conv2D(32, (3, 3), activation='relu'),
         layers.MaxPooling2D((2, 2)),
 
         # Flatten the output
