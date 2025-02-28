@@ -215,7 +215,7 @@ def analyze_image(path: str = "./sample_points.jpg", json_data: dict = None, cli
                 "text":False,
                 "text_value":""}
         if check_for_solution_field(modified_image):
-            cv2.imwrite(path + "sol",modified_image)
+            cv2.imwrite(path + "sol"  + pathpost,modified_image)
             field["solution"] = True
 
         white = 0
