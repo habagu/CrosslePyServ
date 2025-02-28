@@ -173,7 +173,7 @@ def Puzzle_to_JsonArray(Puzzle):
             slots = []
             while found:
                 found = any(e["x"] == cell["x"] and e["y"] == tempy and e["text"] == False for e in Puzzle)
-                slots.add({str(tempx)+":"+str(tempy)})
+                slots.append({str(tempx)+":"+str(tempy)})
                 length = length + 1
                 tempy = tempy + 1
             element = {
