@@ -11,6 +11,8 @@ received_images = []
 open_sockets = []
 
 def receive_data(client_socket, data_size):
+    if client_socket == None:
+        return
     buffer = b""
     while len(buffer) < data_size:
         data = client_socket.recv(data_size - len(buffer))
@@ -70,6 +72,8 @@ def test_image():
     analyze_image()
 
 def send_response(client_socket, response_dict):
+    if client_socket == None:
+        return
     print("Sending JSON:", json.dumps(response_dict))
     json_string = json.dumps(response_dict)
     json_string = json_string.replace('"', '')
@@ -83,6 +87,8 @@ def send_response(client_socket, response_dict):
     client_socket.sendall(response_bytes)
 
 def send_status_updates(msg: str, percentage: int, client_socket):
+    if client_socket == None:
+        return
     status = {
         "type": "status_update",
         "message": msg,
@@ -93,6 +99,8 @@ def send_status_updates(msg: str, percentage: int, client_socket):
     
 
 def process_data(image_path: str, data: dict, client_socket) -> str:
+    if client_socket == None:
+        return
     send_status_updates("Processing data...", 0, client_socket)
     for i in range(11):
         send_status_updates(f"Processing data...", i * 10, client_socket)
