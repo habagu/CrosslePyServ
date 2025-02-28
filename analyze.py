@@ -231,30 +231,30 @@ def analyze_image(path: str = "./sample_points.jpg", json_data: dict = None, cli
         if not check_for_center_white(modified_image):
             field["text"] = True
             field["text_value"] = check_for_text(modified_image)
-            cv2.imwrite(path + "text",modified_image)
+            cv2.imwrite(path + "text" + pathpost,modified_image)
         elif prediction == white:
-            cv2.imwrite(path + "white",modified_image)
+            cv2.imwrite(path + "white" + pathpost,modified_image)
             field["white"] = True
         elif prediction == arrow_to_bottom:
-            cv2.imwrite(path + "arrow_to_bottom",modified_image)
+            cv2.imwrite(path + "arrow_to_bottom" + pathpost,modified_image)
             field["arrow_to_bottom"] = True
         elif prediction == arrow_to_right:
-            cv2.imwrite(path + "arrow_to_right",modified_image)
+            cv2.imwrite(path + "arrow_to_right" + pathpost,modified_image)
             field["arrow_to_right"] = True
         elif prediction == double_arrow:
-            cv2.imwrite(path + "double_arrow",modified_image)
+            cv2.imwrite(path + "double_arrow" + pathpost,modified_image)
             field["double_arrow"] = True
         elif prediction == handle_bottom_to_right:
-            cv2.imwrite(path + "handle_bottom_to_right",modified_image)
+            cv2.imwrite(path + "handle_bottom_to_right" + pathpost,modified_image)
             field["handle_bottom_to_right"] = True
         elif prediction == handle_left_to_bottom:
-            cv2.imwrite(path + "handle_left_to_bottom",modified_image)
+            cv2.imwrite(path + "handle_left_to_bottom" + pathpost,modified_image)
             field["handle_left_to_bottom"] = True
         elif prediction == handle_right_to_bottom:
-            cv2.imwrite(path + "handle_right_to_bottom",modified_image)
+            cv2.imwrite(path + "handle_right_to_bottom" + pathpost,modified_image)
             field["handle_right_to_bottom"] = True
         elif prediction == handle_top_to_right:
-            cv2.imwrite(path + "handle_top_to_right",modified_image)
+            cv2.imwrite(path + "handle_top_to_right" + pathpost,modified_image)
             field["handle_top_to_right"] = True
         return field
 
