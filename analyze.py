@@ -128,7 +128,7 @@ def analyze_image(path: str = "./sample_points.jpg", json_data: dict = None, cli
         real_zoom = 1-(zoom * 0.001)
         percentage_to_finish = percentage_to_finish + 1
         progress_print(str(percentage_to_finish) + "%")
-        send_status_updates("fiting grid: ",percentage_to_finish,client_socket)
+        send_status_updates("fiting grid: ",int(percentage_to_finish),client_socket)
         for wiggle_x in range(0,13):
             for wiggle_y in range(0,13):
                 grid_image = edges.copy()
@@ -198,8 +198,9 @@ def analyze_image(path: str = "./sample_points.jpg", json_data: dict = None, cli
         # Convert the binary image to RGB
         modified_image = cv2.cvtColor(modified_image, cv2.COLOR_GRAY2RGB)
         pathpre = "./sol/"
-        pathpost = str(x) +"_" +str(y) + ".png"
-        path = pathpre + pathpost
+        pathprepost = str(x) +"_" +str(y)
+        pathpost = ".png"
+        path = pathpre + pathprepost
         delete_png_files(pathpre)
         field = {
                 "x":x,"y":y,
@@ -393,13 +394,16 @@ def analyze_image(path: str = "./sample_points.jpg", json_data: dict = None, cli
             percentage_to_finish = percentage_to_finish + 50/((len(intersection_points)-1)*(len(intersection_points[x])-1))
             Puzzle.append(analyze_square(cropped_image,x,y))
             progress_print(str(percentage_to_finish) + "%")
-            send_status_updates("Analysing image: ",percentage_to_finish,client_socket)
-
+            send_status_updates("Analysing image: ",int(percentage_to_finish),client_socket)
+    print("puzzle to json")
     JsonArray = Puzzle_to_JsonArray(Puzzle)
+    print("Json array erstellt")
     solutions = [e for e in Puzzle if e.get("sol") is True]
+    print("scanned for sol")
     solutionsArray = []
     for sol in solutions:
         solutionsArray.append(str(sol.get("x")) + ":" + str(sol.get("y")))
+    print("sol array erstellt")
     status = {
         "type": "finished",
         "data": {
@@ -411,6 +415,8 @@ def analyze_image(path: str = "./sample_points.jpg", json_data: dict = None, cli
             }
         }
     }
-    
+    print("json vollständig erstellt")
+    import pprint
+    pprint.pprint(status, compact=False)
     send_response(client_socket, status)
     return 0
