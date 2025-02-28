@@ -198,9 +198,8 @@ def analyze_image(path: str = "./sample_points.jpg", json_data: dict = None, cli
         # Convert the binary image to RGB
         modified_image = cv2.cvtColor(modified_image, cv2.COLOR_GRAY2RGB)
         pathpre = "./sol/"
-        pathprepost = str(x) +"_" +str(y)
-        pathpost = ".png"
-        path = pathpre + pathprepost
+        pathpost = str(x) +"_" +str(y) + ".png"
+        path = pathpre
         delete_png_files(pathpre)
         field = {
                 "x":x,"y":y,
